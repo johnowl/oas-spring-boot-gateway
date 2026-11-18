@@ -1,0 +1,23 @@
+operation-id-camel-case
+  Category:         NAMING
+  Default severity: warn
+  Strict severity:  error
+  Configurable:     yes
+
+Description
+  operationId matches ^[a-z][a-zA-Z0-9]*$, for example getOrders.
+
+Rationale
+  One naming style gives predictable method names in generated clients.
+
+Bad example
+  paths:
+    /orders:
+      get:
+        operationId: get_orders
+
+Good example
+  paths:
+    /orders:
+      get:
+        operationId: listOrders

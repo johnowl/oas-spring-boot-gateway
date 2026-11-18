@@ -1,0 +1,5 @@
+paths:
+  /orders:
+    get:
+      parameters:
+        - { name: status, in: query, schema: { type: string } }

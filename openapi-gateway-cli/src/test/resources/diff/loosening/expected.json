@@ -1,0 +1,95 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "name": "oas-gateway-validate",
+    "version": "${version}"
+  },
+  "changes": [
+    {
+      "changeId": "permission-removed-from-all-of",
+      "method": "DELETE",
+      "publicPath": "/orders-api/orders/{id}",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}/delete",
+      "permission": "Orders.Delete",
+      "message": "Orders.Delete removed from all-of"
+    },
+    {
+      "changeId": "permission-removed-from-all-of",
+      "method": "DELETE",
+      "publicPath": "/orders-api/orders/{id}",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}/delete",
+      "permission": "Orders.Write",
+      "message": "Orders.Write removed from all-of"
+    },
+    {
+      "changeId": "became-public",
+      "method": "GET",
+      "publicPath": "/orders-api/orders/{id}",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}/get",
+      "permission": null,
+      "message": "base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public"
+    },
+    {
+      "changeId": "any-of-removed",
+      "method": "POST",
+      "publicPath": "/orders-api/orders/{id}/cancel",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}~1cancel/post",
+      "permission": null,
+      "message": "base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read, Orders.Write], any-of=[Orders.Cancel]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]"
+    },
+    {
+      "changeId": "permission-removed-from-all-of",
+      "method": "POST",
+      "publicPath": "/orders-api/orders/{id}/cancel",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}~1cancel/post",
+      "permission": "Orders.Write",
+      "message": "Orders.Write removed from all-of"
+    },
+    {
+      "changeId": "authenticated-only-replaced-permissions",
+      "method": "GET",
+      "publicPath": "/orders-api/orders/{id}/notes",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}~1notes/get",
+      "permission": null,
+      "message": "base: audience=6f1c2e8a-0000-0000-0000-000000000000, any-of=[Orders.Refund]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only"
+    },
+    {
+      "changeId": "permission-added-to-any-of",
+      "method": "POST",
+      "publicPath": "/orders-api/orders/{id}/refund",
+      "file": "src/test/resources/diff/loosening/head/orders.yaml",
+      "pointer": "/paths/~1orders~1{id}~1refund/post",
+      "permission": "Finance.Admin",
+      "message": "Finance.Admin added to any-of"
+    },
+    {
+      "changeId": "audience-changed",
+      "method": "GET",
+      "publicPath": "/payments-api/payments/{id}",
+      "file": "src/test/resources/diff/loosening/head/payments.yaml",
+      "pointer": "/paths/~1payments~1{id}/get",
+      "permission": null,
+      "message": "base: audience=7a2d3f9b-0000-0000-0000-000000000000, all-of=[Payments.Read]; head: audience=8b3e4a0c-0000-0000-0000-000000000000, all-of=[Payments.Read]"
+    }
+  ],
+  "bindings": [
+    {
+      "kind": "binding-new",
+      "audience": "8b3e4a0c-0000-0000-0000-000000000000",
+      "baseUpstream": null,
+      "headUpstream": "http://payments-service:8080",
+      "basePrefix": null,
+      "headPrefix": "/payments-api",
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/loosening/head/payments.yaml",
+      "pointer": "/x-gateway/upstream"
+    }
+  ]
+}

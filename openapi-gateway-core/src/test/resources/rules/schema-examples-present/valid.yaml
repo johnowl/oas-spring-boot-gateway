@@ -1,0 +1,104 @@
+openapi: 3.1.0
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        # The referenced schema has a top-level example.
+        "200":
+          description: The orders.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderList" }
+        # An example on the media type.
+        "400":
+          description: Bad request.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+              example: { title: Bad request, status: 400 }
+        # Named examples on the media type.
+        "404":
+          description: Not found.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+              examples:
+                notFound:
+                  value: { title: Not found, status: 404 }
+        # OAS 3.1: examples on the schema. Parameters and case are ignored.
+        "409":
+          description: Conflict.
+          content:
+            "Application/Problem+JSON; charset=utf-8":
+              schema:
+                type: object
+                examples:
+                  - { title: Conflict, status: 409 }
+        # OAS 3.1: an example next to a schema $ref counts.
+        "422":
+          description: Unprocessable.
+          content:
+            application/vnd.orders+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+                examples:
+                  - { title: Unprocessable, status: 422 }
+        # A response $ref: the referenced response has an example.
+        "503":
+          $ref: "#/components/responses/Unavailable"
+    post:
+      security: []
+      operationId: createOrder
+      # A request body $ref: the schema reaches an example through two references.
+      requestBody:
+        $ref: "#/components/requestBodies/NewOrder"
+      responses:
+        # Media types that are not JSON are not checked.
+        "201":
+          description: Created.
+          content:
+            text/plain:
+              schema: { type: string }
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        # A media type without schema is not checked.
+        "202":
+          description: Accepted.
+          content:
+            application/json: {}
+components:
+  requestBodies:
+    NewOrder:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/NewOrderAlias" }
+  responses:
+    Unavailable:
+      description: Unavailable.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+          example: { title: Unavailable, status: 503 }
+  schemas:
+    OrderList:
+      type: array
+      items: { type: object }
+      example:
+        - { id: A-1001, status: OPEN }
+    NewOrderAlias:
+      $ref: "#/components/schemas/NewOrder"
+    NewOrder:
+      type: object
+      example: { item: book }
+    Problem:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: integer }

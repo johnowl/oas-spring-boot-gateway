@@ -1,0 +1,9 @@
+x-gateway:
+  upstream: http://orders:8080
+paths:
+  /orders:
+    get:
+      security:
+        - entra: []
+      x-gateway-authorization:
+        any-of: [Orders.Read]

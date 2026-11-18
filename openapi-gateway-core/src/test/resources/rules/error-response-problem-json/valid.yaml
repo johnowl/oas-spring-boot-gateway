@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getOrder
+      responses:
+        # Success responses are not checked.
+        "200":
+          description: The order.
+          content:
+            application/json:
+              schema: { type: object }
+        "404":
+          description: Not found.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        # The comparison ignores parameters and case.
+        "409":
+          description: Conflict.
+          content:
+            "Application/Problem+JSON; charset=utf-8":
+              schema: { $ref: "#/components/schemas/Problem" }
+        # An error response without content passes.
+        "410":
+          description: Gone.
+        "5XX":
+          $ref: "#/components/responses/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+components:
+  responses:
+    Problem:
+      description: A problem.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Problem:
+      type: object

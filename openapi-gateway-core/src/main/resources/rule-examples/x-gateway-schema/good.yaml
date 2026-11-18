@@ -1,0 +1,4 @@
+x-gateway:
+  upstream: http://orders:8080
+  upstream-base-path: /v1
+  prefix: /orders-api

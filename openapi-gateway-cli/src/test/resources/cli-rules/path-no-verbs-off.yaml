@@ -1,0 +1,6 @@
+rules:
+  path-no-verbs: off
+  operation-id-camel-case: error
+  error-response-problem-json:
+    options:
+      media-types: [application/problem+json, application/json]

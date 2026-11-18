@@ -1,0 +1,23 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+tags:
+  - name: orders
+paths:
+  /orders:
+    get:
+      operationId: operation1
+      summary: List orders
+      tags: [orders]
+      security: []
+      x-deviation:
+        - rule: security-explicit
+          reason: Trying to hide a CONTRACT rule.
+        - rule: deviation-unused
+          reason: Nothing to suppress.
+      responses:
+        "200":
+          description: OK.

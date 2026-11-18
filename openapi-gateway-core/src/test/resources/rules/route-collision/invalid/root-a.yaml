@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: A
+  version: 1.0.0
+x-gateway:
+  upstream: http://a-service:8080
+  prefix: /a
+paths:
+  /b:
+    get:
+      responses:
+        "200":
+          description: B.

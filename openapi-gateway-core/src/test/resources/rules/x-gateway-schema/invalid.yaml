@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders:8080/v1
+  prefix: /Orders
+  upstrem: http://orders:8080
+paths:
+  /orders:
+    get:
+      responses:
+        "200":
+          description: The orders.

@@ -1,0 +1,4 @@
+::error file=src/test/resources/diff/moved-prefix/head/orders.yaml,line=24,col=5::Access loosening (became-public) of GET /shop/orders/{id}: base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public (the same backend as GET /orders-api/orders/{id} in the base).
+::error file=src/test/resources/diff/moved-prefix/head/orders.yaml,line=24,col=5::Access loosening (new-public-operation) of GET /shop/orders/{id}: base: none; head: public.
+::error file=src/test/resources/diff/moved-prefix/head/orders.yaml,line=7,col=3::Audience binding changed: 6f1c2e8a-0000-0000-0000-000000000000 now sends tokens to http://orders-service:8080 for the prefix /shop (base: http://orders-service:8080 for the prefix /orders-api). Check that this upstream is the backend of the audience.
+2 access loosening changes in 1 operation. 1 new or changed audience binding to review.

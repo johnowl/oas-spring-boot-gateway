@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+  audience: 6f1c2e8a-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+# swagger-parser follows the $ref of Admin to Inner and drops the get next to it (SEC-67-1).
+webhooks:
+  Admin:
+    $ref: "#/webhooks/Inner"
+    get:
+      security:
+        - entra: []
+      x-gateway-authorization:
+        all-of: [Orders.Admin]
+      responses:
+        "200":
+          description: OK
+  Inner:
+    post:
+      security: []
+      responses:
+        "200":
+          description: OK
+paths:
+  /orders/{id}:
+    get:
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+  /orders/admin:
+    $ref: "#/webhooks/Admin"

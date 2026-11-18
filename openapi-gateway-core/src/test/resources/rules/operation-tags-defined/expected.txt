@@ -1,0 +1,5 @@
+/paths/~1orders/get/tags/0
+/paths/~1orders/post
+/paths/~1refunds/get
+/paths/~1orders~1{id}/get/tags/1
+/paths/~1orders~1{id}/delete/tags/0

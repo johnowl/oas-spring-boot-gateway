@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+tags:
+  - name: orders
+paths:
+  /orders:
+    # Not declared: the case is different.
+    get:
+      security: []
+      operationId: listOrders
+      tags: [Orders]
+      responses:
+        "200":
+          description: OK.
+    # tags: [] has no tag.
+    post:
+      security: []
+      operationId: createOrder
+      tags: []
+      responses:
+        "201":
+          description: Created.
+  /refunds:
+    # No tag.
+    get:
+      security: []
+      operationId: listRefunds
+      responses:
+        "200":
+          description: OK.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    # The second tag is not declared.
+    get:
+      security: []
+      operationId: getOrder
+      tags: [orders, order-details]
+      responses:
+        "200":
+          description: OK.
+    # A tag that is not a string is not declared. The pointer is its index in the file.
+    delete:
+      security: []
+      operationId: deleteOrder
+      tags: [1, orders]
+      responses:
+        "204":
+          description: Deleted.

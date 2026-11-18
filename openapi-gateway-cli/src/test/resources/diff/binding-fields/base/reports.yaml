@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info:
+  title: Reports
+  version: 1.0.0
+x-gateway:
+  upstream: http://reports-service:8080
+  audience: 9c4f5b1d-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /reports/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-gateway-authorization:
+        all-of: [Reports.Read]
+      responses:
+        "200":
+          description: OK

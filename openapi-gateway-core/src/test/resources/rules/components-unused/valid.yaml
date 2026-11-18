@@ -1,0 +1,109 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          $ref: "#/components/responses/OrderList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      security: []
+      operationId: createOrder
+      requestBody:
+        $ref: "#/components/requestBodies/NewOrder"
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              $ref: "#/components/headers/Location"
+  /pets:
+    get:
+      security: []
+      operationId: listPets
+      responses:
+        "200":
+          description: The pets.
+          content:
+            application/json:
+              schema:
+                # Cat and Dog are used only through discriminator.mapping: as a reference and as a schema name.
+                type: object
+                properties:
+                  petType: { type: string }
+                discriminator:
+                  propertyName: petType
+                  mapping:
+                    cat: "#/components/schemas/Cat"
+                    dog: Dog
+              examples:
+                tom:
+                  $ref: "#/components/examples/Tom"
+components:
+  # An unused security scheme is not reported: security references it by name.
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer }
+  headers:
+    Location:
+      schema: { type: string, format: uri }
+  examples:
+    Tom:
+      value: { petType: cat }
+  requestBodies:
+    NewOrder:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Order" }
+  responses:
+    OrderList:
+      description: The orders.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/OrderList" }
+    Problem:
+      description: A problem.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    # OrderList is used by a response, and Order through OrderList (transitive).
+    OrderList:
+      type: array
+      items: { $ref: "#/components/schemas/Order" }
+    Order:
+      type: object
+      properties:
+        parent: { $ref: "#/components/schemas/Order" }
+        items: { $ref: "#/components/schemas/Item" }
+    # Item and Tag reference each other. Both are used through Order.
+    Item:
+      type: object
+      properties:
+        tag: { $ref: "#/components/schemas/Tag" }
+    Tag:
+      type: object
+      properties:
+        item: { $ref: "#/components/schemas/Item" }
+    Problem:
+      type: object
+    Cat:
+      type: object
+    Dog:
+      type: object

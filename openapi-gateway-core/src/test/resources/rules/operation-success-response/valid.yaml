@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        "200":
+          description: The orders.
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      security: []
+      operationId: createOrder
+      responses:
+        "201":
+          description: Created.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      security: []
+      operationId: deleteOrder
+      responses:
+        "2XX":
+          description: Deleted.
+    put:
+      security: []
+      operationId: putOrder
+      responses:
+        "299":
+          description: Unusual, but a success code.
+components:
+  responses:
+    Problem:
+      description: A problem.

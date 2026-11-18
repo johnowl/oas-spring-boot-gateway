@@ -1,0 +1,21 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Orders", "version": "1.0.0" },
+  "paths": {
+    "/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "responses": {
+          "200": {
+            "description": "The orders.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": ["string", "null"] } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

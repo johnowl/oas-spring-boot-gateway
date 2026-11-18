@@ -1,0 +1,12 @@
+paths:
+  /orders:
+    get:
+      responses:
+        "200":
+          description: OK.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+components:
+  schemas:
+    Order: { type: object }

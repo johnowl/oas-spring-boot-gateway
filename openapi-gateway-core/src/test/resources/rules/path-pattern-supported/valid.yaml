@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Files
+  version: 1.0.0
+x-gateway:
+  upstream: http://files-service:8080
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          description: Root.
+  /files/{file_id}/versions/{version_number}:
+    parameters:
+      - { name: file_id, in: path, required: true, schema: { type: string } }
+      - { name: version_number, in: path, required: true, schema: { type: string } }
+    get:
+      responses:
+        "200":
+          description: One version.
+  /v1.0/reports_2024/x~y:
+    get:
+      responses:
+        "200":
+          description: Unreserved characters.

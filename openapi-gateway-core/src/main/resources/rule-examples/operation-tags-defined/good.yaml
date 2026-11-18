@@ -1,0 +1,10 @@
+tags:
+  - name: Orders
+  - name: Payments
+paths:
+  /orders:
+    get:
+      tags: [Orders]
+  /payments:
+    get:
+      tags: [Payments]

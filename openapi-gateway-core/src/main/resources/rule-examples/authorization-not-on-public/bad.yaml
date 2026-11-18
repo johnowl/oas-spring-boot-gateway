@@ -1,0 +1,6 @@
+paths:
+  /health:
+    get:
+      security: []
+      x-gateway-authorization:
+        any-of: [Health.Read]

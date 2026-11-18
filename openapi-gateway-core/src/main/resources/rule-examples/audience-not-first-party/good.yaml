@@ -1,0 +1,4 @@
+# The app id of the app registration of the backend.
+x-gateway:
+  upstream: http://graph-service:8080
+  audience: 6f1c2e8a-3b4d-4c5e-8f60-718293a4b5c6

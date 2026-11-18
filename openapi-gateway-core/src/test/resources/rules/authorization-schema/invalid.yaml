@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+  prefix: /orders-api
+  audience: 6f1c2e8a-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /me:
+    get:
+      x-gateway-authorization:
+        authenticated-only: true
+        all-of: [Orders.Read]
+      responses:
+        "200":
+          description: OK.
+  /orders:
+    get:
+      x-gateway-authorization:
+        all-of: []
+      responses:
+        "200":
+          description: OK.
+  /items:
+    get:
+      x-gateway-authorization:
+        alls-of: [Orders.Read]
+      responses:
+        "200":
+          description: OK.
+  /flags:
+    get:
+      x-gateway-authorization:
+        authenticated-only: false
+      responses:
+        "200":
+          description: OK.

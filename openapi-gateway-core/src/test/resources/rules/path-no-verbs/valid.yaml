@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        "200":
+          description: The orders.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getOrder
+      responses:
+        "200":
+          description: The order.
+  /orders/{id}/cancellation:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      security: []
+      operationId: cancelOrder
+      responses:
+        "204":
+          description: Cancelled.
+  # "settings" is not equal to "set".
+  /settings:
+    get:
+      security: []
+      operationId: getSettings
+      responses:
+        "200":
+          description: The settings.
+  # search, cancel, approve, and run are not in the list.
+  /orders/search:
+    post:
+      security: []
+      operationId: searchOrders
+      responses:
+        "200":
+          description: The orders.
+  /runs/{runId}/approve:
+    parameters:
+      - { name: runId, in: path, required: true, schema: { type: string } }
+    post:
+      security: []
+      operationId: approveRun
+      responses:
+        "204":
+          description: Approved.
+  # Variables are not checked.
+  /targets/{getTarget}:
+    parameters:
+      - { name: getTarget, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getTarget
+      responses:
+        "200":
+          description: The target.
+  # Variables are not checked, also inside a segment.
+  /orders/{getId}:cancel:
+    parameters:
+      - { name: getId, in: path, required: true, schema: { type: string } }
+    post:
+      security: []
+      operationId: cancelOrderAction
+      responses:
+        "204":
+          description: Cancelled.

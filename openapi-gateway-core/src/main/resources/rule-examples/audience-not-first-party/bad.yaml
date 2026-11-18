@@ -1,0 +1,4 @@
+# 00000003-0000-0000-c000-000000000000 is the app id of Microsoft Graph.
+x-gateway:
+  upstream: http://graph-service:8080
+  audience: 00000003-0000-0000-c000-000000000000

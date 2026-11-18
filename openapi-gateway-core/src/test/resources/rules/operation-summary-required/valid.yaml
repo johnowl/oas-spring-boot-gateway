@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      summary: List orders
+      responses:
+        "200":
+          description: OK.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    # A summary with a description passes.
+    get:
+      security: []
+      operationId: getOrder
+      summary: Get an order
+      description: Returns one order.
+      responses:
+        "200":
+          description: OK.

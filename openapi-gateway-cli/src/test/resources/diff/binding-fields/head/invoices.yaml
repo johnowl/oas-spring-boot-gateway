@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info:
+  title: Invoices
+  version: 1.0.0
+x-gateway:
+  upstream: http://invoices-service:8080
+  audience: 1d5a6c2e-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /invoices/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-gateway-authorization:
+        all-of: [Invoices.Read]
+      responses:
+        "200":
+          description: OK

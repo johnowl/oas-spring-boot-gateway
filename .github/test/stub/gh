@@ -1,0 +1,35 @@
+#!/bin/bash
+# Stub of "gh api": serves JSON files from $GH_FIXTURES. A missing file is an HTTP error (exit 1).
+set -u
+[ "${1:-}" = api ] || { echo "stub gh: only 'gh api' is supported" >&2; exit 2; }
+shift
+jq_expr="" endpoint="" params=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -H | -X) shift 2 ;;
+    --paginate) shift ;;
+    --jq) jq_expr=$2; shift 2 ;;
+    -f | -F) params+=("$2"); shift 2 ;;
+    *) endpoint=$1; shift ;;
+  esac
+done
+echo "$endpoint ${params[*]}" >> "$GH_FIXTURES/calls.log"
+case "$endpoint" in
+  repos/*/pulls/*) file=pulls.json ;;
+  repos/*/issues/*/timeline*) file=timeline.json ;;
+  repos/*/activity) file=activity.json ;;
+  repos/*/collaborators/*/permission)
+    user=${endpoint#*/collaborators/}
+    file=perm_${user%/permission}.json
+    ;;
+  *) echo "stub gh: unexpected endpoint $endpoint" >&2; exit 1 ;;
+esac
+if [ ! -f "$GH_FIXTURES/$file" ]; then
+  echo "gh: Not Found (HTTP 404)" >&2
+  exit 1
+fi
+if [ -n "$jq_expr" ]; then
+  jq -r "$jq_expr" "$GH_FIXTURES/$file"
+else
+  cat "$GH_FIXTURES/$file"
+fi

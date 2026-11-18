@@ -1,0 +1,9 @@
+paths:
+  /orders:
+    post:
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: { type: string }

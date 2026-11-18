@@ -1,0 +1,7 @@
+/paths/~1orders/get/responses/200/content/application~1json
+/paths/~1orders/get/responses/404/content/application~1problem+json
+/paths/~1orders/get/responses/409/content/Application~1JSON; charset=utf-8
+/paths/~1orders/get/responses/409/content/application~1vnd.orders+json
+/paths/~1orders/get/responses/503/content/application~1problem+json
+/paths/~1orders/post/requestBody/content/application~1json
+/paths/~1orders~1{id}/put/requestBody/content/application~1json

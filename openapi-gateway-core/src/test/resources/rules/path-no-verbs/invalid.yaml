@@ -1,0 +1,79 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /get-orders:
+    get:
+      security: []
+      operationId: getOrders
+      responses:
+        "200":
+          description: The orders.
+  /orders/{id}/delete:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      security: []
+      operationId: deleteOrder
+      responses:
+        "204":
+          description: Deleted.
+  /createOrder:
+    post:
+      security: []
+      operationId: createOrder
+      responses:
+        "201":
+          description: Created.
+  # "update" is a word. A team suppresses it if the word is a noun.
+  /orders/{id}/status-update:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getStatusUpdate
+      responses:
+        "200":
+          description: The status update.
+    put:
+      security: []
+      operationId: putStatusUpdate
+      responses:
+        "204":
+          description: Updated.
+  /orders_list:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        "200":
+          description: The orders.
+  /orders.fetch:
+    get:
+      security: []
+      operationId: fetchOrders
+      responses:
+        "200":
+          description: The orders.
+  # A verb next to a variable in the same segment.
+  /orders/{id}:delete:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      security: []
+      operationId: deleteOrderAction
+      responses:
+        "204":
+          description: Deleted.
+  /orders/getAll.{format}:
+    parameters:
+      - { name: format, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getAllOrders
+      responses:
+        "200":
+          description: The orders.

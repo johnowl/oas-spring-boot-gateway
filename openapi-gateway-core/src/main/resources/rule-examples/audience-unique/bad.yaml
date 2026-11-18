@@ -1,0 +1,9 @@
+# orders.yaml
+x-gateway:
+  upstream: http://orders:8080
+  audience: 6f1c2e8a-3b4d-4c5e-8f60-718293a4b5c6
+---
+# payments.yaml: the same audience with another upstream.
+x-gateway:
+  upstream: http://payments:8080
+  audience: 6f1c2e8a-3b4d-4c5e-8f60-718293a4b5c6

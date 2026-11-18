@@ -1,0 +1,16 @@
+# Default OAS location of the tests (gateway.openapi.specs = classpath:openapi/*.yaml).
+# The gateway does not start without an OAS file. Port 9 (discard) has no backend.
+openapi: 3.0.3
+info:
+  title: Sample
+  version: 1.0.0
+x-gateway:
+  upstream: http://localhost:9
+  prefix: /sample-api
+paths:
+  /items:
+    get:
+      security: []
+      responses:
+        "200":
+          description: The items.

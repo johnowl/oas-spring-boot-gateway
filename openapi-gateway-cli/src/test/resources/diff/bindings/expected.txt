@@ -1,0 +1,11 @@
+BINDING binding-changed audience=6f1c2e8a-0000-0000-0000-000000000000
+  src/test/resources/diff/bindings/head/orders.yaml#/x-gateway/upstream
+  base: upstream=http://orders-service:8080, prefix=/orders-api; head: upstream=http://reporting-service:8080, prefix=/orders-api
+BINDING binding-new audience=7a2d3f9b-0000-0000-0000-000000000000
+  src/test/resources/diff/bindings/head/payments.yaml#/x-gateway/upstream
+  base: none; head: upstream=http://payments-service:8080, prefix=/payments-api
+BINDING binding-changed without an audience
+  src/test/resources/diff/bindings/head/health.yaml#/x-gateway/upstream
+  base: upstream=http://health-service:8080, prefix=/health-api; head: upstream=http://status-service:8080, prefix=/health-api
+
+0 access loosening changes in 0 operations. 3 new or changed audience bindings to review.

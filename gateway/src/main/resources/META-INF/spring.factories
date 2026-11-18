@@ -1,0 +1,7 @@
+# Turns off the Redis auto-configurations unless gateway.session.store is redis (spec 022).
+org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\
+com.johnowl.gateway.security.RedisAutoConfigurationFilter
+
+# The log guard: no log line contains a token or a secret (spec 022, "Log guard").
+org.springframework.context.ApplicationListener=\
+com.johnowl.gateway.security.LogGuard

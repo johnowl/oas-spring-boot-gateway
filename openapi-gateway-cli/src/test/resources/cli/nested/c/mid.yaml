@@ -1,0 +1,19 @@
+openapi: 3.0.3
+info:
+  title: Mid
+  version: 1.0.0
+x-gateway:
+  upstream: http://mid-service:8080
+  prefix: /mid
+tags:
+  - name: items
+paths:
+  /items:
+    get:
+      operationId: listMidItems
+      summary: List items
+      tags: [items]
+      security: []
+      responses:
+        "200":
+          description: Items.

@@ -1,0 +1,3 @@
+::error file=src/test/resources/diff/new-operations/head/orders.yaml,line=31,col=5::Access loosening (shadows-protected-template) of GET /orders-api/orders/export: overlaps GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only.
+::error file=src/test/resources/diff/new-operations/head/orders.yaml,line=38,col=5::Access loosening (new-public-operation) of GET /orders-api/status: base: none; head: public.
+2 access loosening changes in 2 operations.

@@ -1,0 +1,702 @@
+# Compares the OAS files of each pull request with the OAS files of its base. It reports breaking changes (job
+# breaking-changes, specs/033-breaking-change-detection.md) and access loosening changes and audience bindings (job
+# access-changes, specs/034-access-change-review.md).
+name: OpenAPI change control
+
+on:
+  pull_request:
+    branches: [main]
+    # labeled and unlabeled: adding or removing breaking-change-approved or access-change-approved runs the checks again.
+    # edited: a change of the base branch runs the checks again.
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openapi-change-control-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  OAS_DIR: gateway/src/main/resources/openapi
+
+jobs:
+  # Reads the files of the pull request as data only. It runs no code and no build tool from the pull request.
+  # The job access-changes reuses the env and the scripts of this job through the YAML anchors (&name and *name).
+  breaking-changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # Reads the live label state and the timeline of the pull request.
+      pull-requests: read
+    env: &tools-env
+      OASDIFF_VERSION: 1.38.0
+      # SHA-256 of oasdiff_1.38.0_linux_amd64.tar.gz, from checksums.txt of the release.
+      OASDIFF_SHA256: 613037fd6a1d3362a1b742d6d86c338c0eb5ab3511f4942ce3948e78720ea2da
+      YQ_VERSION: 4.54.3
+      # SHA-256 of yq_linux_amd64, from the file checksums of the release (column SHA-256 of checksums_hashes_order).
+      YQ_SHA256: 129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+    steps:
+      # fetch-depth 2: the merge commit of the pull request and its two parents.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Install oasdiff and yq
+        run: &install-tools |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/tools"
+          mkdir -p "$dir"
+          download() {
+            curl -fsSL --proto '=https' --proto-redir '=https' --tlsv1.2 --retry 3 -o "$1" "$2"
+          }
+          download "$dir/oasdiff.tar.gz" \
+            "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz"
+          echo "$OASDIFF_SHA256  $dir/oasdiff.tar.gz" | sha256sum --check --strict -
+          tar -xzf "$dir/oasdiff.tar.gz" -C "$dir" oasdiff
+          download "$dir/yq" "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
+          echo "$YQ_SHA256  $dir/yq" | sha256sum --check --strict -
+          chmod +x "$dir/yq"
+
+      - name: Check the merge commit
+        id: merge
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: &check-merge |
+          set -euo pipefail
+          # actions/checkout checks out the merge commit of the pull request.
+          # Parent 1 is the base commit, and parent 2 is the head of the pull request.
+          parents=$(git rev-list --parents -n 1 HEAD)
+          read -r -a commits <<< "$parents"
+          if [ "${#commits[@]}" -ne 3 ] || [ "${commits[2]}" != "$HEAD_SHA" ]; then
+            echo "::error::HEAD is not the merge commit of the pull request head $HEAD_SHA."
+            exit 1
+          fi
+          echo "merge=${commits[0]}" >> "$GITHUB_OUTPUT"
+          echo "base=${commits[1]}" >> "$GITHUB_OUTPUT"
+
+      # The label cannot change the result of this step.
+      - name: Check the location of the OAS files
+        env:
+          BASE_SHA: ${{ steps.merge.outputs.base }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge }}
+        run: &check-location |
+          set -euo pipefail
+          yq="$RUNNER_TEMP/tools/yq"
+          work="$RUNNER_TEMP/location"
+          mkdir -p "$work"
+          workflow=.github/workflows/openapi-change-control.yml
+          properties=gateway/src/main/java/com/johnowl/gateway/routing/GatewayOpenApiProperties.java
+          resources=gateway/src/main/resources
+
+          # Writes the file $2 of commit $1 to $3, from the Git objects. Writes nothing when the path does not exist.
+          write_blob() {
+            local record mode oid
+            git --literal-pathspecs ls-tree --full-tree -z "$1" -- "$2" > "$work/entry"
+            if [ ! -s "$work/entry" ]; then
+              return 0
+            fi
+            IFS= read -r -d '' record < "$work/entry"
+            read -r mode _ oid <<< "${record%%$'\t'*}"
+            case "$mode" in
+              100644 | 100755) git cat-file blob "$oid" > "$3" ;;
+              *)
+                echo "::error::$2 is not a regular file in commit $1 (mode $mode)."
+                exit 1
+                ;;
+            esac
+          }
+
+          # Writes the mode and the object id of the path $2 in commit $1 to $3. Writes nothing when it does not exist.
+          write_entry() {
+            git --literal-pathspecs ls-tree --full-tree -z "$1" -- "$2" | tr '\0' '\n' | cut -f 1 > "$3"
+          }
+
+          # The configuration files application*.yaml, *.yml, and *.properties of each module, except the test files.
+          # The gateway can read the file of another module from the classpath, for example config/application.yaml.
+          # Writes the values of gateway.openapi.specs to $2.specs, and the values of spring.config.import,
+          # spring.config.location, and spring.config.additional-location to $2.import. One line for each value.
+          config_values() {
+            local record path mode oid format line key
+            : > "$2.specs"
+            : > "$2.import"
+            git --literal-pathspecs ls-tree -r -z --full-tree "$1" > "$work/list"
+            while IFS= read -r -d '' record; do
+              path=${record#*$'\t'}
+              case "$path" in
+                src/test/* | */src/test/*) continue ;;
+              esac
+              case "${path##*/}" in
+                application*.yaml | application*.yml) format=yaml ;;
+                application*.properties) format=props ;;
+                *) continue ;;
+              esac
+              read -r mode _ oid <<< "${record%%$'\t'*}"
+              case "$mode" in
+                100644 | 100755) ;;
+                *)
+                  echo "::error::$path is not a regular file in commit $1 (mode $mode)."
+                  exit 1
+                  ;;
+              esac
+              git cat-file blob "$oid" > "$work/config"
+              # One line "key = value" for each scalar, empty list, and empty map of each document. explode(.)
+              # resolves the aliases and the merge keys (<<) first, as Spring does.
+              "$yq" -p "$format" -o yaml \
+                'explode(.) | .. | select(kind == "scalar" or length == 0) | (path | map(tostring) | join(".")) + " = " + (. | @json)' \
+                "$work/config" > "$work/props"
+              # The canonical name of Spring relaxed binding: lowercase, without - and _, [n] as .n.
+              while IFS= read -r line; do
+                key=${line%% = *}
+                key=$(printf '%s' "$key" | tr '[:upper:]' '[:lower:]' | tr -d '_-' | sed -E 's/\[([0-9]+)\]/.\1/g')
+                case "$key" in
+                  gateway.openapi.specs | gateway.openapi.specs.*)
+                    printf '%q: %s = %s\n' "$path" "$key" "${line#* = }" >> "$2.specs"
+                    ;;
+                  spring.config.import | spring.config.import.* | spring.config.location | spring.config.location.* \
+                    | spring.config.additionallocation | spring.config.additionallocation.*)
+                    printf '%q: %s = %s\n' "$path" "$key" "${line#* = }" >> "$2.import"
+                    ;;
+                esac
+              done < "$work/props"
+            done < "$work/list"
+          }
+
+          # Writes the YAML and properties files in $resources of commit $1 whose name does not start with
+          # application, outside $OAS_DIR, with their mode and object id, one line for each file.
+          other_config_files() {
+            local record path
+            git --literal-pathspecs ls-tree -r -z --full-tree "$1" -- "$resources/" > "$work/resources"
+            while IFS= read -r -d '' record; do
+              path=${record#*$'\t'}
+              case "$path" in
+                "$OAS_DIR"/*) continue ;;
+              esac
+              case "${path##*/}" in
+                application*) ;;
+                *.yaml | *.yml | *.properties) printf '%q %s\n' "$path" "${record%%$'\t'*}" ;;
+              esac
+            done < "$work/resources" | LC_ALL=C sort > "$2"
+          }
+
+          # Writes each path of commit $1 in a folder src/main/resources/openapi of a module, outside $OAS_DIR.
+          # The gateway reads classpath:openapi/ from the first classpath entry that has this folder.
+          other_openapi_folders() {
+            local path
+            git --literal-pathspecs ls-tree -r -z --full-tree --name-only "$1" > "$work/names"
+            while IFS= read -r -d '' path; do
+              case "$path" in
+                "$OAS_DIR" | "$OAS_DIR"/*) ;;
+                src/main/resources/openapi | src/main/resources/openapi/* \
+                  | */src/main/resources/openapi | */src/main/resources/openapi/*)
+                  printf '%q\n' "$path"
+                  ;;
+              esac
+            done < "$work/names"
+          }
+
+          # Writes the Maven elements with a targetPath that names openapi in gateway/pom.xml of commit $1 to $2.
+          openapi_resources() {
+            rm -f "$work/pom.xml"
+            write_blob "$1" gateway/pom.xml "$work/pom.xml"
+            if [ -f "$work/pom.xml" ]; then
+              "$yq" -p xml -o json -I 0 \
+                'explode(.) | [.. | select(tag == "!!map" and has("targetPath")) | select(.targetPath | test("(?i)openapi"))]' \
+                "$work/pom.xml" > "$2"
+            else
+              echo '[]' > "$2"
+            fi
+          }
+
+          { other_openapi_folders "$BASE_SHA"; other_openapi_folders "$MERGE_SHA"; } | LC_ALL=C sort -u > "$work/folders"
+          while IFS= read -r path; do
+            echo "::error::$path is in a folder src/main/resources/openapi outside $OAS_DIR. The gateway can load it from the classpath, but the checks compare only $OAS_DIR. Move the file to $OAS_DIR, or remove it."
+          done < "$work/folders"
+
+          changed=()
+          config_values "$BASE_SHA" "$work/config-base"
+          config_values "$MERGE_SHA" "$work/config-head"
+          if ! cmp -s "$work/config-base.specs" "$work/config-head.specs"; then
+            changed+=("gateway.openapi.specs in a configuration file of the gateway")
+          fi
+          if ! cmp -s "$work/config-base.import" "$work/config-head.import"; then
+            changed+=("spring.config.import, spring.config.location, or spring.config.additional-location in a configuration file")
+          fi
+          other_config_files "$BASE_SHA" "$work/other-base"
+          other_config_files "$MERGE_SHA" "$work/other-head"
+          # Added or changed files only: a removed file cannot set a property.
+          while IFS= read -r line; do
+            changed+=("the configuration file ${line% * * *} in $resources, whose name does not start with application")
+          done < <(LC_ALL=C comm -13 "$work/other-base" "$work/other-head")
+          write_entry "$BASE_SHA" "$properties" "$work/properties-base"
+          write_entry "$MERGE_SHA" "$properties" "$work/properties-head"
+          if ! cmp -s "$work/properties-base" "$work/properties-head"; then
+            changed+=("$properties, the default value of gateway.openapi.specs")
+          fi
+          openapi_resources "$BASE_SHA" "$work/pom-base"
+          openapi_resources "$MERGE_SHA" "$work/pom-head"
+          if ! cmp -s "$work/pom-base" "$work/pom-head"; then
+            changed+=("a Maven resource with targetPath openapi in gateway/pom.xml")
+          fi
+          # The first pull request that adds this workflow has no base value.
+          rm -f "$work/workflow-base" "$work/workflow-head"
+          write_blob "$BASE_SHA" "$workflow" "$work/workflow-base"
+          if [ -f "$work/workflow-base" ]; then
+            write_blob "$MERGE_SHA" "$workflow" "$work/workflow-head"
+            touch "$work/workflow-head"
+            query='explode(.) | [.. | select(tag == "!!map" and has("OAS_DIR")) | .OAS_DIR]'
+            # An assignment, so that a failed yq fails the step.
+            base_dirs=$("$yq" -o json -I 0 "$query" "$work/workflow-base")
+            head_dirs=$("$yq" -o json -I 0 "$query" "$work/workflow-head")
+            if [ "$base_dirs" != "$head_dirs" ]; then
+              changed+=("OAS_DIR in $workflow")
+            fi
+          fi
+          for change in "${changed[@]}"; do
+            echo "::error::The pull request changes $change. This change can move the OAS files that the gateway loads. Update spec 033 and this check in a dedicated reviewed pull request."
+          done
+          if [ "${#changed[@]}" -ne 0 ] || [ -s "$work/folders" ]; then
+            exit 1
+          fi
+          echo "The pull request does not change the location of the OAS files."
+
+      # The label cannot change the result of this step.
+      - name: Extract base and head OAS files
+        id: oas
+        env:
+          BASE_SHA: ${{ steps.merge.outputs.base }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge }}
+        run: &extract-oas |
+          # Fail closed: if a git command or the extraction fails, the job fails.
+          set -euo pipefail
+          shopt -s nullglob dotglob
+          yq="$RUNNER_TEMP/tools/yq"
+          oas="$RUNNER_TEMP/oas"
+          mkdir -p "$oas"
+
+          # Writes the files that the gateway reads (classpath:openapi/*.yaml, *.yml, and *.json, spec 013) from the
+          # OAS folder of commit $1 to folder $2. It reads the Git objects: no checkout and no .gitattributes filter.
+          extract_oas_files() {
+            local commit=$1 target=$2 path="" part record name mode oid
+            local -a parts
+            mkdir -p "$target"
+            IFS=/ read -r -a parts <<< "$OAS_DIR"
+            for part in "${parts[@]}"; do
+              path=${path:+$path/}$part
+              git --literal-pathspecs ls-tree --full-tree -z "$commit" -- "$path" > "$oas/entry"
+              if [ ! -s "$oas/entry" ]; then
+                return 0
+              fi
+              IFS= read -r -d '' record < "$oas/entry"
+              if [ "${record%% *}" != 040000 ]; then
+                echo "::error::$path is not a folder in commit $commit (mode ${record%% *})."
+                exit 1
+              fi
+            done
+            git --literal-pathspecs ls-tree --full-tree -z "$commit" -- "$OAS_DIR/" > "$oas/list"
+            while IFS= read -r -d '' record; do
+              name=${record#*$'\t'}
+              name=${name##*/}
+              case "$name" in
+                *.yaml | *.yml | *.json) ;;
+                *) continue ;;
+              esac
+              read -r mode _ oid <<< "${record%%$'\t'*}"
+              case "$mode" in
+                100644 | 100755) git cat-file blob "$oid" > "$target/$name" ;;
+                # A symbolic link can point outside the repository, and the build copies its target.
+                120000 | 160000)
+                  echo "::error::$OAS_DIR/$name in commit $commit is a symbolic link or a submodule (mode $mode). Replace it with a file."
+                  exit 1
+                  ;;
+                # A folder: the gateway does not load it.
+                *) ;;
+              esac
+            done < "$oas/list"
+          }
+
+          extract_oas_files "$BASE_SHA" "$oas/base/$OAS_DIR"
+          extract_oas_files "$MERGE_SHA" "$oas/head/$OAS_DIR"
+
+          # yq reads each file with its YAML parser, like oasdiff. A JSON file is also YAML. explode(.) resolves the
+          # aliases and the merge keys (<<) first, so that a merge key cannot hide x-since-date or x-gateway.prefix.
+          # With x-since-date, oasdiff takes one of two duplicate operations and drops the other without an error.
+          since=0
+          for side in base head; do
+            for file in "$oas/$side/$OAS_DIR"/*; do
+              lines=$("$yq" -p yaml -o yaml 'explode(.) | .. | select(tag == "!!map") | select(has("x-since-date")) | line' "$file")
+              for line in $lines; do
+                since=$((since + 1))
+                if [ "$side" = head ]; then
+                  echo "::error file=$OAS_DIR/${file##*/},line=$line::The OAS file contains x-since-date. Remove it."
+                else
+                  echo "::error::The base OAS file $OAS_DIR/${file##*/} contains x-since-date on line $line. Remove it."
+                fi
+              done
+            done
+          done
+          if [ "$since" -ne 0 ]; then
+            echo "::error::x-since-date can hide a duplicate operation from the comparison. The OAS files must not use it."
+            exit 1
+          fi
+
+          base_count=$(find "$oas/base/$OAS_DIR" -type f | wc -l)
+          head_count=$(find "$oas/head/$OAS_DIR" -type f | wc -l)
+          if diff -r -q "$oas/base/$OAS_DIR" "$oas/head/$OAS_DIR" > /dev/null; then
+            echo "Base: $base_count OAS files. Head: $head_count OAS files. Result: unchanged."
+            echo "result=unchanged" >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              exit "$status"
+            fi
+          fi
+
+          # One group for each value of x-gateway.prefix (no prefix: the root group). The gateway exposes the
+          # operations of each group under its prefix, so oasdiff compares each group on its own.
+          declare -A group_of=()
+          declare -a prefix_of=()
+          groups=0
+          for side in base head; do
+            for file in "$oas/$side/$OAS_DIR"/*; do
+              prefix=$("$yq" -p yaml -o json -I 0 'explode(.) | .["x-gateway"].prefix' "$file")
+              case "$prefix" in
+                *$'\n'*) prefix=invalid ;;
+              esac
+              case "$prefix" in
+                null | \"*\") ;;
+                *)
+                  echo "::error::x-gateway.prefix of $side file $OAS_DIR/${file##*/} is not one string."
+                  exit 1
+                  ;;
+              esac
+              if [ -z "${group_of[$prefix]+set}" ]; then
+                groups=$((groups + 1))
+                group_of[$prefix]=$groups
+                prefix_of[groups]=$prefix
+              fi
+              mkdir -p "$oas/$side-${group_of[$prefix]}/$OAS_DIR"
+              cp -- "$file" "$oas/$side-${group_of[$prefix]}/$OAS_DIR/"
+            done
+          done
+
+          # A group on one side only is compared with an empty OAS file: all its operations are new or removed.
+          : > "$oas/groups"
+          for ((group = 1; group <= groups; group++)); do
+            for side in base head; do
+              dir="$oas/$side-$group/$OAS_DIR"
+              mkdir -p "$dir"
+              if [ -z "$(find "$dir" -type f)" ]; then
+                printf 'openapi: 3.0.3\ninfo:\n  title: empty\n  version: "0"\npaths: {}\n' > "$dir/empty.yaml"
+              fi
+            done
+            if diff -r -q "$oas/base-$group/$OAS_DIR" "$oas/head-$group/$OAS_DIR" > /dev/null; then
+              continue
+            else
+              status=$?
+              if [ "$status" -ne 1 ]; then
+                exit "$status"
+              fi
+            fi
+            printf '%s\t%s\n' "$group" "${prefix_of[group]}" >> "$oas/groups"
+          done
+          echo "Base: $base_count OAS files. Head: $head_count OAS files. Result: compare, $(wc -l < "$oas/groups") changed prefix groups."
+          echo "result=compare" >> "$GITHUB_OUTPUT"
+
+      # Reads the live state through the API, so that a re-run uses the current label. An API error means: no approval.
+      - name: Read the label approval
+        id: label
+        if: steps.oas.outputs.result == 'compare'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: breaking-change-approved
+        run: &read-label |
+          set -euo pipefail
+          api() {
+            gh api -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$@"
+          }
+
+          # Prints the reason and returns 1 when the label does not count.
+          check_approval() {
+            local pr head_repo head_ref events labeled label_at actor pushed_at activity role
+            pr=$(api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER") || { echo "The pull request cannot be read."; return 1; }
+            if [ "$(jq -r --arg l "$LABEL" '[.labels[].name] | index($l) != null' <<< "$pr")" != true ]; then
+              echo "The label $LABEL is not present."
+              return 1
+            fi
+            if [ "$(jq -r '.head.sha' <<< "$pr")" != "$HEAD_SHA" ]; then
+              echo "The pull request has a newer head than this run."
+              return 1
+            fi
+            head_repo=$(jq -r '.head.repo.full_name // empty' <<< "$pr") || return 1
+            head_ref=$(jq -r '.head.ref // empty' <<< "$pr") || return 1
+            if [ -z "$head_repo" ] || [ -z "$head_ref" ]; then
+              echo "The head repository of the pull request cannot be read."
+              return 1
+            fi
+
+            events=$(api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/timeline?per_page=100" \
+              --jq '.[] | {event, created_at, label: .label.name, actor: .actor.login, committed_at: .committer.date}') \
+              || { echo "The timeline of the pull request cannot be read."; return 1; }
+            labeled=$(jq -s -c --arg l "$LABEL" \
+              'map(select(.event == "labeled" and .label == $l)) | max_by(.created_at | fromdateiso8601) // empty' <<< "$events") \
+              || { echo "The timeline of the pull request cannot be read."; return 1; }
+            if [ -z "$labeled" ]; then
+              echo "The timeline has no labeled event for $LABEL."
+              return 1
+            fi
+            label_at=$(jq -r '.created_at | fromdateiso8601' <<< "$labeled") || return 1
+            actor=$(jq -r '.actor // empty' <<< "$labeled") || return 1
+            # Lower bounds of the last push: force pushes, branch restores, and the commit dates. A commit date comes from
+            # the author, so the activity of the head branch below gives the push time.
+            pushed_at=$(jq -s 'map(
+                if .event == "head_ref_force_pushed" or .event == "head_ref_restored" then .created_at
+                elif .event == "committed" then .committed_at
+                else empty end | fromdateiso8601) | max // 0' <<< "$events") \
+              || { echo "The timeline of the pull request cannot be read."; return 1; }
+
+            activity=$(api -X GET "repos/$head_repo/activity" -f "ref=refs/heads/$head_ref" -f direction=desc -F per_page=1) \
+              || { echo "The activity of the head branch cannot be read."; return 1; }
+            if [ "$(jq -r '.[0].after // empty' <<< "$activity")" != "$HEAD_SHA" ]; then
+              echo "The last activity of the head branch is not the push of $HEAD_SHA."
+              return 1
+            fi
+            pushed_at=$(jq -r --argjson t "$pushed_at" '[.[0].timestamp | fromdateiso8601, $t] | max' <<< "$activity") \
+              || { echo "The activity of the head branch cannot be read."; return 1; }
+            if [ "$label_at" -le "$pushed_at" ]; then
+              echo "The label was added before the last push to the pull request. Add it again."
+              return 1
+            fi
+
+            role=$(api "repos/$GITHUB_REPOSITORY/collaborators/$actor/permission" --jq '.role_name') \
+              || { echo "The permission of $actor cannot be read."; return 1; }
+            case "$role" in
+              admin | maintain) ;;
+              *)
+                echo "$actor added the label with the role $role. Only the roles admin and maintain can approve."
+                return 1
+                ;;
+            esac
+            echo "$actor ($role) added the label after the last push."
+          }
+
+          if reason=$(check_approval); then
+            echo "::notice::Label $LABEL counts: $reason"
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Label $LABEL does not count: $reason"
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: oasdiff breaking
+        env:
+          RESULT: ${{ steps.oas.outputs.result }}
+          APPROVED: ${{ steps.label.outputs.approved }}
+        run: |
+          set -euo pipefail
+          case "$RESULT" in
+            unchanged)
+              echo "::notice::The pull request does not change the OAS files."
+              exit 0
+              ;;
+            compare) ;;
+            *)
+              echo "::error::Unexpected result '$RESULT' of the extraction step."
+              exit 1
+              ;;
+          esac
+
+          fail_on=(--fail-on ERR)
+          if [ "$APPROVED" = "true" ]; then
+            fail_on=()
+            echo "::notice::The label breaking-change-approved counts. Breaking changes do not fail this job."
+          fi
+          # The working directory of each group has only the copied OAS folder: oasdiff finds no .oasdiff.* file from
+          # the pull request, and the annotations name the head files with their paths in the repository.
+          # The gateway allows only local $ref values, so oasdiff refuses each external $ref (no network, no file).
+          failed=0
+          while IFS=$'\t' read -r group prefix; do
+            echo "Prefix group $group, x-gateway.prefix $prefix:"
+            status=0
+            (
+              cd "$RUNNER_TEMP/oas/head-$group"
+              "$RUNNER_TEMP/tools/oasdiff" breaking --composed --allow-external-refs=false \
+                --format githubactions "${fail_on[@]}" \
+                "../base-$group/$OAS_DIR/*" "$OAS_DIR/*"
+            ) || status=$?
+            if [ "$status" -ne 0 ]; then
+              echo "oasdiff exit code $status for prefix group $group."
+              failed=1
+            fi
+          done < "$RUNNER_TEMP/oas/groups"
+          exit "$failed"
+
+  # Builds the CLI from the base commit and runs its subcommand diff on the OAS files of the pull request.
+  # The files of the pull request are data only: no code and no build tool from the pull request runs.
+  access-changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # Reads the live label state and the timeline of the pull request.
+      pull-requests: read
+    env: *tools-env
+    steps:
+      # fetch-depth 2: the merge commit of the pull request and its two parents.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      # The steps up to "Extract base and head OAS files" are the same as in the job breaking-changes.
+      - name: Install oasdiff and yq
+        run: *install-tools
+
+      - name: Check the merge commit
+        id: merge
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: *check-merge
+
+      # The label cannot change the result of this step.
+      - name: Check the location of the OAS files
+        env:
+          BASE_SHA: ${{ steps.merge.outputs.base }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge }}
+        run: *check-location
+
+      # The label cannot change the result of this step.
+      - name: Extract base and head OAS files
+        id: oas
+        env:
+          BASE_SHA: ${{ steps.merge.outputs.base }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge }}
+        run: *extract-oas
+
+      # No Maven cache: the jobs of the pull request can write a cache with the same key, and change the plugins of
+      # the base build. overwrite-settings false: setup-java writes no ~/.m2/settings.xml.
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        if: steps.oas.outputs.result == 'compare'
+        with:
+          distribution: temurin
+          java-version: '25'
+          overwrite-settings: false
+
+      # A pull request can change the code of diff, so a CLI of the pull request could hide its own changes (SEC-74-2).
+      - name: Build the CLI from the base commit
+        id: cli
+        if: steps.oas.outputs.result == 'compare'
+        env:
+          BASE_SHA: ${{ steps.merge.outputs.base }}
+        run: |
+          set -euo pipefail
+          source="$RUNNER_TEMP/cli-source"
+          maven="$RUNNER_TEMP/maven"
+          mkdir -p "$source" "$maven" "$RUNNER_TEMP/cli"
+          # The tree of the base commit from the Git objects. git archive reads the .gitattributes of that tree only,
+          # not of the checkout. No file of the pull request is on the build path.
+          git archive --format=tar "$BASE_SHA" | tar -x -C "$source"
+          # A new Maven folder for the wrapper, the local repository, and the settings: the build reads no Maven file
+          # of the runner, of an earlier step, or of the checkout. -s and -gs replace the user and the global
+          # settings with an empty file. The source tree of the base still has its .mvn folder.
+          printf '<settings/>\n' > "$maven/settings.xml"
+          (
+            cd "$source"
+            MAVEN_USER_HOME="$maven" ./mvnw -B -s "$maven/settings.xml" -gs "$maven/settings.xml" \
+              -Dmaven.repo.local="$maven/repository" -pl openapi-gateway-cli -am package -DskipTests
+          )
+          jar="$RUNNER_TEMP/cli/oas-gateway-validate.jar"
+          cp -- "$source/openapi-gateway-cli/target/oas-gateway-validate.jar" "$jar"
+          sha256=$(sha256sum "$jar")
+          sha256=${sha256%% *}
+          echo "The CLI of the base commit $BASE_SHA has the SHA-256 $sha256."
+          echo "jar=$jar" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+
+      # The same as in the job breaking-changes, with the label access-change-approved.
+      - name: Read the label approval
+        id: label
+        if: steps.oas.outputs.result == 'compare'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: access-change-approved
+        run: *read-label
+
+      - name: Access diff
+        env:
+          RESULT: ${{ steps.oas.outputs.result }}
+          APPROVED: ${{ steps.label.outputs.approved }}
+          CLI_JAR: ${{ steps.cli.outputs.jar }}
+          CLI_SHA256: ${{ steps.cli.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          case "$RESULT" in
+            unchanged)
+              echo "::notice::The pull request does not change the OAS files."
+              exit 0
+              ;;
+            compare) ;;
+            *)
+              echo "::error::Unexpected result '$RESULT' of the extraction step."
+              exit 1
+              ;;
+          esac
+          oas="$RUNNER_TEMP/oas"
+          # diff returns 2 for a head without OAS files. Only the label passes this pull request (SEC-75-1): the
+          # gateway does not start without an OAS file, and the OAS files can move to a place that no check reads.
+          if [ -z "$(find "$oas/head/$OAS_DIR" -type f)" ]; then
+            if [ "$APPROVED" = "true" ]; then
+              echo "::notice::The pull request removes all OAS files from $OAS_DIR. The label access-change-approved counts."
+              exit 0
+            fi
+            echo "::error::The pull request removes all OAS files from $OAS_DIR, so diff has no head to compare. The gateway does not start without an OAS file. After the review, a user with the role admin or maintain adds the label access-change-approved."
+            exit 1
+          fi
+          # Only the jar of the step "Build the CLI from the base commit" runs.
+          echo "$CLI_SHA256  $CLI_JAR" | sha256sum --check --strict -
+
+          # The working directory has only the copied head OAS folder: the annotations name the head files with their
+          # paths in the repository, and no path named diff exists. The CLI writes the job summary of the changes and
+          # of the bindings.
+          cd "$oas/head"
+          status=0
+          java -jar "$CLI_JAR" diff --format github "../base/$OAS_DIR" "$OAS_DIR" > "$oas/diff.out" || status=$?
+          cat -- "$oas/diff.out"
+          case "$status" in
+            0)
+              echo "::notice::No access loosening change and no new or changed audience binding."
+              exit 0
+              ;;
+            1) ;;
+            *)
+              echo "::error::diff exit code $status: an OAS file cannot be compared. The label does not change this result."
+              if [ "$status" -eq 2 ]; then
+                echo "::notice::diff of the base commit checks the head files with the CONTRACT rules of the base. Land a change of the CONTRACT rules in a separate pull request first."
+              fi
+              exit 1
+              ;;
+          esac
+          # The JVM and an uncaught exception also return 1. Only the summary line of diff shows its exit code 1.
+          summary='^[0-9]+ access loosening changes? in [0-9]+ operations?\.( [0-9]+ new or changed audience bindings? to review\.)?$'
+          if ! [[ "$(tail -n 1 -- "$oas/diff.out")" =~ $summary ]]; then
+            echo "::error::diff exit code 1 without its summary line. The label does not change this result."
+            exit 1
+          fi
+          # GitHub shows only the first 10 error annotations of a step (SEC-75-3).
+          annotations=$(grep -c '^::error' -- "$oas/diff.out" || true)
+          if [ "$annotations" -gt 10 ]; then
+            echo "::warning::diff reports $annotations changes and bindings, and GitHub shows only 10 annotations. Read the complete list in the job summary."
+          fi
+          if [ "$APPROVED" = "true" ]; then
+            echo "::notice::The label access-change-approved counts. The access changes and the bindings are approved."
+            exit 0
+          fi
+          echo "::error::The pull request loosens access or adds or changes an audience binding. After the review, a user with the role admin or maintain adds the label access-change-approved."
+          exit 1

@@ -1,0 +1,4 @@
+paths:
+  /orders:
+    get:
+      summary: List orders

@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      x-deviation:
+        - rule: operation-id-camel-case
+        - rule: operation-id-camel-case
+          reason: OK.
+          owner: team-a
+        - rule: operation-summary-requird
+          reason: Typo in the rule id.
+        - rule: security-explicit
+          reason: Trying to hide a CONTRACT rule.
+        - rule: deviation-schema
+          reason: Trying to hide this rule.
+        - rule: operation-id-camel-case
+          reason: "   "
+        - rule: deviation-unused
+          reason: Trying to hide the unused warning.
+      x-lint-ignore:
+        - rule: operation-id-camel-case
+          reason: Old key.
+      responses:
+        "200":
+          description: OK.
+  /items:
+    get:
+      security: []
+      x-deviation: operation-id-camel-case
+      responses:
+        "200":
+          description: OK.

@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        default:
+          $ref: "#/components/responses/Problem"
+  # A redirect only is not a success response. A team suppresses it with a reason.
+  /old-orders:
+    get:
+      security: []
+      operationId: listOldOrders
+      responses:
+        "302":
+          description: Moved.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      security: []
+      operationId: deleteOrder
+      responses:
+        "404":
+          description: Not found.
+        "300":
+          description: Not a success code.
+components:
+  responses:
+    Problem:
+      description: A problem.

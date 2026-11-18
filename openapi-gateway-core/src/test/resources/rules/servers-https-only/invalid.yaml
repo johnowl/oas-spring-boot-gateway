@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+servers:
+  - url: http://api.example.com
+  - url: https://api.example.com
+  - url: http://localhost:8080
+  - url: "{scheme}://api.example.com"
+    variables:
+      scheme:
+        default: http
+        enum: [http, https]
+  # Each scheme other than https fails.
+  - url: wss://events.example.com
+  # A parser removes the leading space and reads http.
+  - url: " http://api.example.com"
+paths:
+  /orders:
+    servers:
+      - url: HTTP://orders.example.com
+    get:
+      security: []
+      operationId: listOrders
+      servers:
+        - url: ftp://files.example.com
+      responses:
+        "200":
+          description: The orders.
+webhooks:
+  orderCreated:
+    post:
+      servers:
+        - url: http://hooks.example.com
+      responses:
+        "200":
+          description: Received.

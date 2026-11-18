@@ -1,0 +1,3 @@
+/paths/~1a/get/operationId
+/paths/~1b/get/operationId
+/paths/~1c/get/operationId

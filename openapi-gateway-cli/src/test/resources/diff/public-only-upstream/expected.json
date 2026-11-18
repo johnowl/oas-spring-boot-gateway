@@ -1,0 +1,22 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "name": "oas-gateway-validate",
+    "version": "${version}"
+  },
+  "changes": [],
+  "bindings": [
+    {
+      "kind": "binding-changed",
+      "audience": null,
+      "baseUpstream": "http://docs-service:8080",
+      "headUpstream": "http://169.254.169.254",
+      "basePrefix": "/docs",
+      "headPrefix": "/docs",
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/public-only-upstream/head/docs.yaml",
+      "pointer": "/x-gateway/upstream"
+    }
+  ]
+}

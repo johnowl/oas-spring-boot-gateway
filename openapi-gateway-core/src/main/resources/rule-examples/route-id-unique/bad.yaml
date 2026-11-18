@@ -1,0 +1,14 @@
+# team-a/orders.yaml
+x-gateway:
+  upstream: http://orders:8080
+paths:
+  /orders/{id}:
+    get: {}
+---
+# team-b/orders.yaml: the same file name and the same path give the same route id.
+x-gateway:
+  upstream: http://team-b-orders:8080
+  prefix: /team-b
+paths:
+  /orders/{id}:
+    get: {}

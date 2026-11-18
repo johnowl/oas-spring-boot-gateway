@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Health
+  version: 1.0.0
+x-gateway:
+  upstream: http://health-service:8080
+  prefix: /health-api
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK

@@ -1,0 +1,1 @@
+/paths/~1health/get/x-gateway-authorization

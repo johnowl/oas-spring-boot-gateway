@@ -1,0 +1,4 @@
+/paths/~1me/get/x-gateway-authorization
+/paths/~1orders/get/x-gateway-authorization/all-of
+/paths/~1items/get/x-gateway-authorization
+/paths/~1flags/get/x-gateway-authorization/authenticated-only

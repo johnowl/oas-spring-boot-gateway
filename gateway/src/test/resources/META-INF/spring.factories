@@ -1,0 +1,4 @@
+org.springframework.test.context.ContextCustomizerFactory=\
+com.johnowl.gateway.ManagementPortContextCustomizerFactory,\
+com.johnowl.gateway.security.RedisTestContainerContextCustomizerFactory,\
+com.johnowl.gateway.security.LocalIdentityProviderContextCustomizerFactory

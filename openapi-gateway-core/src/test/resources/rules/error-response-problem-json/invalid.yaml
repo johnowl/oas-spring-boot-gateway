@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getOrder
+      responses:
+        "200":
+          description: The order.
+        "404":
+          description: Not found.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        # Two media types where one is not accepted: one violation.
+        "409":
+          description: Conflict.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Error" }
+            text/plain:
+              schema: { type: string }
+        "4XX":
+          description: Client error.
+          content:
+            application/xml:
+              schema: { $ref: "#/components/schemas/Error" }
+        # The rule resolves a response $ref. The pointer stays below the operation.
+        "503":
+          $ref: "#/components/responses/Error"
+        default:
+          description: Error.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+components:
+  responses:
+    Error:
+      description: An error.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Error:
+      type: object

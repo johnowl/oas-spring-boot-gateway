@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: The orders.
+    post:
+      security: []
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "201":
+          description: Created.
+  # Request bodies on HEAD and DELETE are out of scope.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      security: []
+      operationId: deleteOrder
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "204":
+          description: Deleted.

@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: Health
+  version: 1.0.0
+x-gateway:
+  upstream: http://health-service:8080
+  prefix: /health-api
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK.

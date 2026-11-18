@@ -1,0 +1,29 @@
+LOOSENING permission-removed-from-all-of DELETE /orders-api/orders/{id}
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}/delete
+  Orders.Delete removed from all-of
+LOOSENING permission-removed-from-all-of DELETE /orders-api/orders/{id}
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}/delete
+  Orders.Write removed from all-of
+LOOSENING became-public GET /orders-api/orders/{id}
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}/get
+  base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public
+LOOSENING any-of-removed POST /orders-api/orders/{id}/cancel
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}~1cancel/post
+  base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read, Orders.Write], any-of=[Orders.Cancel]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]
+LOOSENING permission-removed-from-all-of POST /orders-api/orders/{id}/cancel
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}~1cancel/post
+  Orders.Write removed from all-of
+LOOSENING authenticated-only-replaced-permissions GET /orders-api/orders/{id}/notes
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}~1notes/get
+  base: audience=6f1c2e8a-0000-0000-0000-000000000000, any-of=[Orders.Refund]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only
+LOOSENING permission-added-to-any-of POST /orders-api/orders/{id}/refund
+  src/test/resources/diff/loosening/head/orders.yaml#/paths/~1orders~1{id}~1refund/post
+  Finance.Admin added to any-of
+LOOSENING audience-changed GET /payments-api/payments/{id}
+  src/test/resources/diff/loosening/head/payments.yaml#/paths/~1payments~1{id}/get
+  base: audience=7a2d3f9b-0000-0000-0000-000000000000, all-of=[Payments.Read]; head: audience=8b3e4a0c-0000-0000-0000-000000000000, all-of=[Payments.Read]
+BINDING binding-new audience=8b3e4a0c-0000-0000-0000-000000000000
+  src/test/resources/diff/loosening/head/payments.yaml#/x-gateway/upstream
+  base: none; head: upstream=http://payments-service:8080, prefix=/payments-api
+
+8 access loosening changes in 6 operations. 1 new or changed audience binding to review.

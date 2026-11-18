@@ -1,0 +1,2 @@
+::error file=src/test/resources/diff/literal-removed/head/orders.yaml,line=24,col=5::Access loosening (literal-removed-to-template) of GET /orders-api/orders/{id}: takes the requests of the removed GET /orders-api/orders/export; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Export]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read].
+1 access loosening change in 1 operation.

@@ -1,0 +1,12 @@
+/paths/~1files~1{*path}/get
+/paths/~1users~1{id:\d+}/get
+/paths/~1archive~1**/get
+/paths/~1orders~1{id/get
+/paths/~1exports~1{name}.json/get
+/paths/~1reports~1/get
+/paths/~1items~1{item.id}/get
+/paths/~1a~1{id}~1b~1{id}/get
+/paths/~1x,~1orders~1{id}/get
+/paths/~1orders~1?xport/get
+/paths/~1files~1report%202024/get
+/paths/~1a~1..~1b/get

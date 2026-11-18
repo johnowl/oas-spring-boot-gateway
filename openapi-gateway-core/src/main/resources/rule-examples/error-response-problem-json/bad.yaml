@@ -1,0 +1,9 @@
+paths:
+  /orders:
+    get:
+      responses:
+        "404":
+          description: Not found.
+          content:
+            application/json:
+              schema: { type: object }

@@ -1,0 +1,5 @@
+paths:
+  /orders:
+    get:
+      x-gateway-authorization:
+        any-of: [orders.read, OrdersRead]

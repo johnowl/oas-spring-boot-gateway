@@ -1,0 +1,2 @@
+orders.yaml#/x-gateway/audience
+payments.yaml#/x-gateway/audience

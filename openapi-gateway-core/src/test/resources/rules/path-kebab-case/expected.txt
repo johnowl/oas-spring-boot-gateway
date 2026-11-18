@@ -1,0 +1,5 @@
+/paths/~1orderItems~1{id}/get
+/paths/~1orderItems~1{id}/delete
+/paths/~1order_items/get
+/paths/~1v1.2~1x/get
+/paths/~1.well-known/get

@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: Shipments
+  version: 1.0.0
+x-gateway:
+  upstream: http://shipments-service:8080
+  prefix: /shipments-api
+  upstream-base-path: /v1
+  audience: 2e6b7d3f-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /shipments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-gateway-authorization:
+        all-of: [Shipments.Read]
+      responses:
+        "200":
+          description: OK

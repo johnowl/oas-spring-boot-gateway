@@ -1,0 +1,11 @@
+LOOSENING became-public GET /shop/orders/{id}
+  src/test/resources/diff/moved-prefix/head/orders.yaml#/paths/~1orders~1{id}/get
+  base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public (the same backend as GET /orders-api/orders/{id} in the base)
+LOOSENING new-public-operation GET /shop/orders/{id}
+  src/test/resources/diff/moved-prefix/head/orders.yaml#/paths/~1orders~1{id}/get
+  base: none; head: public
+BINDING binding-changed audience=6f1c2e8a-0000-0000-0000-000000000000
+  src/test/resources/diff/moved-prefix/head/orders.yaml#/x-gateway/prefix
+  base: upstream=http://orders-service:8080, prefix=/orders-api; head: upstream=http://orders-service:8080, prefix=/shop
+
+2 access loosening changes in 1 operation. 1 new or changed audience binding to review.

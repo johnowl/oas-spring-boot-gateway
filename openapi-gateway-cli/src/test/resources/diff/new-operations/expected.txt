@@ -1,0 +1,8 @@
+LOOSENING shadows-protected-template GET /orders-api/orders/export
+  src/test/resources/diff/new-operations/head/orders.yaml#/paths/~1orders~1export/get
+  overlaps GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only
+LOOSENING new-public-operation GET /orders-api/status
+  src/test/resources/diff/new-operations/head/orders.yaml#/paths/~1status/get
+  base: none; head: public
+
+2 access loosening changes in 2 operations.

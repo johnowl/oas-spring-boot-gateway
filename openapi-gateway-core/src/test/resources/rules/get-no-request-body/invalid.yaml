@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: The orders.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getOrder
+      requestBody:
+        $ref: "#/components/requestBodies/Filter"
+      responses:
+        "200":
+          description: The order.
+components:
+  requestBodies:
+    Filter:
+      content:
+        application/json:
+          schema: { type: object }

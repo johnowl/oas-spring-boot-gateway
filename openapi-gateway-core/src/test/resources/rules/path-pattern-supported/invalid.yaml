@@ -1,0 +1,79 @@
+openapi: 3.0.3
+info:
+  title: Files
+  version: 1.0.0
+x-gateway:
+  upstream: http://files-service:8080
+paths:
+  /files/{*path}:
+    get:
+      parameters:
+        - { name: "*path", in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: A file.
+  /users/{id:\d+}:
+    get:
+      parameters:
+        - { name: "id:\\d+", in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: A user.
+  /archive/**:
+    get:
+      responses:
+        "200":
+          description: Archive.
+  "/orders/{id":
+    get:
+      responses:
+        "200":
+          description: Broken.
+  /exports/{name}.json:
+    get:
+      parameters:
+        - { name: name, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Export.
+  /reports/:
+    get:
+      responses:
+        "200":
+          description: Trailing slash.
+  /items/{item.id}:
+    get:
+      parameters:
+        - { name: item.id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Dot in variable name.
+  /a/{id}/b/{id}:
+    get:
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Variable name used twice.
+  "/x,/orders/{id}":
+    get:
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Comma splits the gateway Path predicate.
+  /orders/?xport:
+    get:
+      responses:
+        "200":
+          description: Question mark is a wildcard in PathPattern.
+  /files/report%202024:
+    get:
+      responses:
+        "200":
+          description: Percent-encoding never matches.
+  /a/../b:
+    get:
+      responses:
+        "200":
+          description: Dot segment.

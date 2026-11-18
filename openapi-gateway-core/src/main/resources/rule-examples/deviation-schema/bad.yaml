@@ -1,0 +1,7 @@
+paths:
+  /internal/metrics:
+    get:
+      x-deviation:
+        - rule: security-explicit
+          reason: Internal endpoint.
+        - rule: operation-summary-required

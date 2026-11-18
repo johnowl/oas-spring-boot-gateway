@@ -1,0 +1,442 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "name": "oas-gateway-validate",
+    "version": "development"
+  },
+  "profile": "recommended",
+  "ignoreFiles": [],
+  "rules": [
+    {
+      "id": "audience-not-first-party",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "audience-required",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "audience-unique",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "authorization-not-on-public",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "authorization-required",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "authorization-schema",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "components-unused",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "deviation-schema",
+      "category": "DESIGN",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "deviation-unused",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "error-response-problem-json",
+      "category": "ERRORS",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": [
+        {
+          "name": "media-types",
+          "type": "string-list",
+          "default": [
+            "application/problem+json"
+          ],
+          "value": [
+            "application/problem+json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "get-no-request-body",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "oas-parse",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "operation-id-camel-case",
+      "category": "NAMING",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "operation-id-required",
+      "category": "NAMING",
+      "configurable": true,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "operation-success-response",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "operation-summary-required",
+      "category": "DOCUMENTATION",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "operation-tags-defined",
+      "category": "DOCUMENTATION",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "path-kebab-case",
+      "category": "NAMING",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "path-no-trailing-slash",
+      "category": "NAMING",
+      "configurable": true,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "path-no-verbs",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "warn",
+      "profiles": {
+        "recommended": "warn",
+        "strict": "error"
+      },
+      "severity": "warn",
+      "options": []
+    },
+    {
+      "id": "path-pattern-supported",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "permission-format",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "post-201-location-header",
+      "category": "DESIGN",
+      "configurable": true,
+      "defaultSeverity": "info",
+      "profiles": {
+        "recommended": "info",
+        "strict": "warn"
+      },
+      "severity": "info",
+      "options": []
+    },
+    {
+      "id": "route-collision",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "route-id-unique",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "schema-examples-present",
+      "category": "DOCUMENTATION",
+      "configurable": true,
+      "defaultSeverity": "info",
+      "profiles": {
+        "recommended": "info",
+        "strict": "warn"
+      },
+      "severity": "info",
+      "options": []
+    },
+    {
+      "id": "security-explicit",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "security-no-empty-requirement",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "security-no-scopes",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "security-scheme-exists",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "security-scheme-type",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "servers-https-only",
+      "category": "SECURITY",
+      "configurable": true,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "x-gateway-response-timeout",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "x-gateway-schema",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    },
+    {
+      "id": "x-gateway-unknown-extension",
+      "category": "CONTRACT",
+      "configurable": false,
+      "defaultSeverity": "error",
+      "profiles": {
+        "recommended": "error",
+        "strict": "error"
+      },
+      "severity": "error",
+      "options": []
+    }
+  ]
+}

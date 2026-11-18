@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: "listOrders"
+      responses:
+        "200":
+          description: OK.
+  /order-items/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: "getOrderItem"
+      responses:
+        "200":
+          description: OK.
+  /v1/users:
+    get:
+      security: []
+      operationId: "getHTTPStatus"
+      responses:
+        "200":
+          description: OK.
+  /:
+    get:
+      security: []
+      operationId: "root"
+      responses:
+        "200":
+          description: OK.

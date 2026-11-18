@@ -1,0 +1,8 @@
+LOOSENING permission-removed-from-all-of DELETE /shop/orders/{id}
+  src/test/resources/diff/canonical-upstream/head/orders.yaml#/paths/~1orders~1{id}/delete
+  Orders.Delete removed from all-of (the same backend as DELETE /orders-api/orders/{id} in the base)
+BINDING binding-changed audience=6f1c2e8a-0000-0000-0000-000000000000
+  src/test/resources/diff/canonical-upstream/head/orders.yaml#/x-gateway/upstream
+  base: upstream=http://orders-service:80, prefix=/orders-api; head: upstream=http://Orders-Service, prefix=/shop
+
+1 access loosening change in 1 operation. 1 new or changed audience binding to review.

@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+    entraOAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/tenant/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/tenant/oauth2/v2.0/token
+          scopes: {}
+paths:
+  /orders:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK.

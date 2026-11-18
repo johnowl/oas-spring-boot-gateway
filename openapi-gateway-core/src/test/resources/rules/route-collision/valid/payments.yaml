@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: Payments
+  version: 1.0.0
+x-gateway:
+  upstream: http://payments-service:8080
+  prefix: /orders-api
+paths:
+  /orders/{orderId}:
+    parameters:
+      - { name: orderId, in: path, required: true, schema: { type: string } }
+    delete:
+      responses:
+        "204":
+          description: Deleted.

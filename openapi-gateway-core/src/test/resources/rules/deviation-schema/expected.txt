@@ -1,0 +1,9 @@
+/paths/~1orders/get/x-deviation/0
+/paths/~1orders/get/x-deviation/1
+/paths/~1orders/get/x-deviation/2/rule
+/paths/~1orders/get/x-deviation/3/rule
+/paths/~1orders/get/x-deviation/4/rule
+/paths/~1orders/get/x-deviation/5
+/paths/~1items/get/x-deviation
+/paths/~1orders/get/x-deviation/6/rule
+/paths/~1orders/get/x-lint-ignore

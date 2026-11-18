@@ -1,0 +1,15 @@
+{"openapi": "3.1.0", "info": {"title": "Orders", "version": "1.0.0"},
+ "x-gateway": {"upstream": "http://orders-service:8080"},
+ "paths": {"/orders/{id}": {"get": {"security": [],
+   "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+   "responses": {"200": {"description": "OK"}}}}}}
+# The parsers read only the JSON object above. A reviewer reads this document too (SEC-67-4).
+---
+paths:
+  /orders/admin:
+    get:
+      x-gateway-authorization:
+        all-of: [Orders.Admin]
+      responses:
+        "200":
+          description: OK

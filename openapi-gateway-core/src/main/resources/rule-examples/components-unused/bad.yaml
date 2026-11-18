@@ -1,0 +1,9 @@
+paths:
+  /orders:
+    get:
+      responses:
+        "200":
+          description: OK.
+components:
+  schemas:
+    Order: { type: object }

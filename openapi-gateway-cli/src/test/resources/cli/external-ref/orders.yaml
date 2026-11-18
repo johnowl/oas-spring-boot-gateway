@@ -1,0 +1,17 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+  prefix: /orders-api
+paths:
+  /orders:
+    get:
+      responses:
+        "200":
+          description: The orders.
+          content:
+            application/json:
+              schema:
+                $ref: "http://127.0.0.1:9/orders.yaml#/Order"

@@ -1,0 +1,3 @@
+/components/securitySchemes/apiKey/type
+/components/securitySchemes/basic/type
+/components/securitySchemes/bearer/type

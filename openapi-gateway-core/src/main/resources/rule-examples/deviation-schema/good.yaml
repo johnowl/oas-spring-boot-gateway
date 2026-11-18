@@ -1,0 +1,6 @@
+paths:
+  /internal/metrics:
+    get:
+      x-deviation:
+        - rule: operation-summary-required
+          reason: Internal endpoint documented elsewhere.

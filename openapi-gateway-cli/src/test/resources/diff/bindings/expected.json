@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "name": "oas-gateway-validate",
+    "version": "${version}"
+  },
+  "changes": [],
+  "bindings": [
+    {
+      "kind": "binding-changed",
+      "audience": "6f1c2e8a-0000-0000-0000-000000000000",
+      "baseUpstream": "http://orders-service:8080",
+      "headUpstream": "http://reporting-service:8080",
+      "basePrefix": "/orders-api",
+      "headPrefix": "/orders-api",
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/bindings/head/orders.yaml",
+      "pointer": "/x-gateway/upstream"
+    },
+    {
+      "kind": "binding-new",
+      "audience": "7a2d3f9b-0000-0000-0000-000000000000",
+      "baseUpstream": null,
+      "headUpstream": "http://payments-service:8080",
+      "basePrefix": null,
+      "headPrefix": "/payments-api",
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/bindings/head/payments.yaml",
+      "pointer": "/x-gateway/upstream"
+    },
+    {
+      "kind": "binding-changed",
+      "audience": null,
+      "baseUpstream": "http://health-service:8080",
+      "headUpstream": "http://status-service:8080",
+      "basePrefix": "/health-api",
+      "headPrefix": "/health-api",
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/bindings/head/health.yaml",
+      "pointer": "/x-gateway/upstream"
+    }
+  ]
+}

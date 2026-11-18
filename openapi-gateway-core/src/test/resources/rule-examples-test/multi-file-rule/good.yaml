@@ -1,0 +1,9 @@
+# a.yaml
+paths:
+  /orders:
+    get: {}
+---
+# b.yaml: another file.
+paths:
+  /items:
+    get: {}

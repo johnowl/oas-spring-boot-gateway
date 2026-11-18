@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: Payments
+  version: 1.0.0
+x-gateway:
+  upstream: http://payments-service:8080
+  prefix: /payments-api
+  audience: 0b7d3f10-0000-0000-0000-000000000000
+paths:
+  /payments:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK.

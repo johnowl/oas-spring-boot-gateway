@@ -1,0 +1,6 @@
+# Changes to these paths need a review by a code owner when the branch rule of main
+# requires code owner reviews (docs/ci-change-control.md).
+.github/                      @johnowl
+specs/                        @johnowl
+openapi-gateway-core/         @johnowl
+gateway/src/main/resources/   @johnowl

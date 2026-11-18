@@ -1,0 +1,6 @@
+# The variable names differ, but each request matches both operations.
+paths:
+  /orders/{id}:
+    get: {}
+  /orders/{key}:
+    get: {}

@@ -1,0 +1,23 @@
+security-explicit
+  Category:         CONTRACT
+  Default severity: error
+  Strict severity:  error
+  Configurable:     no
+
+Description
+  Each operation has its own security field or a non-empty root security field. A public operation declares security: [] on the operation.
+
+Rationale
+  The gateway never treats a missing declaration as public. A forgotten security field must not expose an operation without login.
+
+Bad example
+  # No root security, and the operation has no security field.
+  paths:
+    /health:
+      get: {}
+
+Good example
+  paths:
+    /health:
+      get:
+        security: []

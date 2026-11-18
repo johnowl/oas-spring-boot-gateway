@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+servers:
+  - url: https://api.example.com
+  - url: HTTPS://API.EXAMPLE.COM/v1
+  # A relative URL passes.
+  - url: /api
+  # A URL that starts with // has no scheme, so it is relative and passes (see "Open questions").
+  - url: //api.example.com
+  - url: "{scheme}://api.example.com"
+    variables:
+      scheme:
+        default: https
+        enum: [https]
+paths:
+  /orders:
+    servers:
+      - url: https://orders.example.com
+    get:
+      security: []
+      operationId: listOrders
+      servers:
+        - url: https://read.example.com
+      responses:
+        "200":
+          description: The orders.

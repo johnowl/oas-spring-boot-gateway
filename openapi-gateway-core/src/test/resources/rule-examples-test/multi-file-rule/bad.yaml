@@ -1,0 +1,7 @@
+paths:
+  /getOrders:
+    get: {}
+---
+paths:
+  /orders:
+    get: {}

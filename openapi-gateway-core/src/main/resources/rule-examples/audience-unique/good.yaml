@@ -1,0 +1,9 @@
+# orders.yaml
+x-gateway:
+  upstream: http://orders:8080
+  audience: 6f1c2e8a-3b4d-4c5e-8f60-718293a4b5c6
+---
+# payments.yaml: the app id of the payments backend.
+x-gateway:
+  upstream: http://payments:8080
+  audience: 0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d

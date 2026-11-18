@@ -1,0 +1,19 @@
+openapi: 3.0.3
+info:
+  title: Overlap B
+  version: 1.0.0
+x-gateway:
+  upstream: http://b-service:8080
+paths:
+  /x/b/{y}:
+    parameters:
+      - { name: y, in: path, required: true, schema: { type: string } }
+    get:
+      responses:
+        "200":
+          description: OK.
+  /users/me:
+    get:
+      responses:
+        "200":
+          description: OK.

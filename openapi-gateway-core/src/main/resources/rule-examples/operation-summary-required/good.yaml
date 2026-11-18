@@ -1,0 +1,5 @@
+paths:
+  /orders:
+    get:
+      summary: List orders
+      description: Returns the orders of the current user.

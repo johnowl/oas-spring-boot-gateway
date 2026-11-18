@@ -1,0 +1,11 @@
+LOOSENING head-weaker-than-get HEAD /orders-api/orders/{id}
+  src/test/resources/diff/head-operation/head/orders.yaml#/paths/~1orders~1{id}/head
+  weaker than GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only
+LOOSENING head-weaker-than-get OPTIONS /orders-api/orders/{id}
+  src/test/resources/diff/head-operation/head/orders.yaml#/paths/~1orders~1{id}/options
+  weaker than GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public
+LOOSENING new-public-operation OPTIONS /orders-api/orders/{id}
+  src/test/resources/diff/head-operation/head/orders.yaml#/paths/~1orders~1{id}/options
+  base: none; head: public
+
+3 access loosening changes in 2 operations.

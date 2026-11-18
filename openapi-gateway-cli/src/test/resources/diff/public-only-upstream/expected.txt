@@ -1,0 +1,5 @@
+BINDING binding-changed without an audience
+  src/test/resources/diff/public-only-upstream/head/docs.yaml#/x-gateway/upstream
+  base: upstream=http://docs-service:8080, prefix=/docs; head: upstream=http://169.254.169.254, prefix=/docs
+
+0 access loosening changes in 0 operations. 1 new or changed audience binding to review.

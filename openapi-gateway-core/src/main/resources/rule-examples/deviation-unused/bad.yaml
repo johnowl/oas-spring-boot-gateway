@@ -1,0 +1,8 @@
+# The operation has a summary, so the deviation covers no violation.
+paths:
+  /orders:
+    get:
+      summary: List orders
+      x-deviation:
+        - rule: operation-summary-required
+          reason: Documented elsewhere.

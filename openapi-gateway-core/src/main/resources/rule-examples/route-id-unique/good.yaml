@@ -1,0 +1,14 @@
+# team-a/orders.yaml
+x-gateway:
+  upstream: http://orders:8080
+paths:
+  /orders/{id}:
+    get: {}
+---
+# team-b/team-b-orders.yaml
+x-gateway:
+  upstream: http://team-b-orders:8080
+  prefix: /team-b
+paths:
+  /orders/{id}:
+    get: {}

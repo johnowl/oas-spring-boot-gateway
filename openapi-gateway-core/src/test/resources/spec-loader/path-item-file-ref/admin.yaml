@@ -1,0 +1,13 @@
+openapi: 3.1.0
+info:
+  title: Admin
+  version: 1.0.0
+paths: {}
+components:
+  pathItems:
+    Admin:
+      get:
+        security: []
+        responses:
+          "200":
+            description: OK

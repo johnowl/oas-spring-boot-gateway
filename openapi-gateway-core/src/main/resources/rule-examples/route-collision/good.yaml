@@ -1,0 +1,6 @@
+# A path without variables may specialize a template in the same file.
+paths:
+  /orders/{id}:
+    get: {}
+  /orders/latest:
+    get: {}

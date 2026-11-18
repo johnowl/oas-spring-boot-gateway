@@ -1,0 +1,3 @@
+::error file=src/test/resources/diff/prefix-move-same-path/head/orders.yaml,line=24,col=5::Access loosening (permission-removed-from-all-of) of DELETE /orders-api/orders/{id}: Orders.Delete removed from all-of.
+::error file=src/test/resources/diff/prefix-move-same-path/head/orders.yaml,line=7,col=3::Audience binding changed: 6f1c2e8a-0000-0000-0000-000000000000 now sends tokens to http://orders-service:8080 for the prefix /orders-api/orders (base: http://orders-service:8080 for the prefix /orders-api). Check that this upstream is the backend of the audience.
+1 access loosening change in 1 operation. 1 new or changed audience binding to review.

@@ -1,0 +1,7 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Top", "version": "1.0.0" },
+  "x-gateway": { "upstream": "http://top-service:8080", "prefix": "/top" },
+  "tags": [ { "name": "items" } ],
+  "paths": { "/items": { "get": { "operationId": "listItems", "summary": "List items", "tags": ["items"], "security": [], "responses": { "200": { "description": "Items." } } } } }
+}

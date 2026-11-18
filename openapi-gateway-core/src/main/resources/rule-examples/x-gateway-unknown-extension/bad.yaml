@@ -1,0 +1,4 @@
+paths:
+  /reports:
+    get:
+      x-gateway-respone-timeout: 5000

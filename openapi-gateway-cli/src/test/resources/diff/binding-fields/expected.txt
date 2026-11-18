@@ -1,0 +1,11 @@
+BINDING binding-changed audience=1d5a6c2e-0000-0000-0000-000000000000
+  src/test/resources/diff/binding-fields/head/invoices.yaml#/x-gateway
+  base: upstream=http://invoices-service:8080, prefix=/invoices-api; head: upstream=http://invoices-service:8080
+BINDING binding-changed audience=2e6b7d3f-0000-0000-0000-000000000000
+  src/test/resources/diff/binding-fields/head/shipments.yaml#/x-gateway/upstream-base-path
+  base: upstream=http://shipments-service:8080, upstream-base-path=/v1, prefix=/shipments-api; head: upstream=http://shipments-service:8080, upstream-base-path=/v2, prefix=/shipments-api
+BINDING binding-changed audience=9c4f5b1d-0000-0000-0000-000000000000
+  src/test/resources/diff/binding-fields/head/reports.yaml#/x-gateway/upstream
+  base: upstream=http://reports-service:8080; head: upstream=http://reports-v2-service:8080
+
+0 access loosening changes in 0 operations. 3 new or changed audience bindings to review.

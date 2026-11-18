@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+tags:
+  - name: orders
+    description: Order management
+  - name: refunds
+    description: Refunds of orders
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      tags: [orders]
+      responses:
+        "200":
+          description: OK.
+  /orders/{id}/refunds:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    # Each tag is declared.
+    get:
+      security: []
+      operationId: listRefunds
+      tags: [orders, refunds]
+      responses:
+        "200":
+          description: OK.

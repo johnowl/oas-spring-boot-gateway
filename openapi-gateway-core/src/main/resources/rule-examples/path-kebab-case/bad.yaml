@@ -1,0 +1,5 @@
+paths:
+  /orderItems/{id}:
+    get: {}
+  /order_items:
+    get: {}

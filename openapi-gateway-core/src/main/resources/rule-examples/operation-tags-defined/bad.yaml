@@ -1,0 +1,8 @@
+tags:
+  - name: Orders
+paths:
+  /orders:
+    get:
+      tags: [orders]
+  /payments:
+    get: {}

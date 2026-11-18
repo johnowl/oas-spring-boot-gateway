@@ -1,0 +1,3 @@
+paths:
+  /getOrders:
+    get: 3

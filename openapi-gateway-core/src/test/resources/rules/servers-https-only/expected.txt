@@ -1,0 +1,8 @@
+/servers/0/url
+/servers/2/url
+/servers/3/url
+/paths/~1orders/servers/0/url
+/paths/~1orders/get/servers/0/url
+/servers/4/url
+/servers/5/url
+/webhooks/orderCreated/post/servers/0/url

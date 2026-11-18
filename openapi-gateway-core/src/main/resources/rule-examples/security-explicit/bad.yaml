@@ -1,0 +1,4 @@
+# No root security, and the operation has no security field.
+paths:
+  /health:
+    get: {}

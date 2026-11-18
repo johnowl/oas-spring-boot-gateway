@@ -1,0 +1,179 @@
+# Releases the CLI when a maintainer pushes a tag vX.Y.Z on a commit of main.
+# See specs/012-cli-distribution.md.
+#
+# Two jobs:
+# - build runs the project code (tests, Maven plugins, image build) with a read-only token and no
+#   registry credentials. It uploads the release files as an artifact.
+# - publish has the write permissions. It runs no project code: it publishes the files of build.
+name: Release CLI
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/oas-gateway-validate
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # No Maven cache: a release downloads its dependencies from the registry, not from a
+      # cache that other workflows write.
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Check tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag $TAG is not vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $TAG is not on main."
+            exit 1
+          fi
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: >
+          ./mvnw -B org.codehaus.mojo:versions-maven-plugin:2.21.0:set
+          -DnewVersion="$VERSION" -DgenerateBackupPoms=false -DprocessAllModules=true
+
+      # Nothing is published if a test fails.
+      - name: Verify
+        run: ./mvnw -B verify
+
+      - name: Build and test image
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          docker build -t "$IMAGE:$VERSION" openapi-gateway-cli
+          test "$(docker run --rm "$IMAGE:$VERSION" --version)" = "oas-gateway-validate $VERSION"
+          test "$(docker run --rm --entrypoint id "$IMAGE:$VERSION" -u)" != "0"
+
+      # The publish job uses exactly these files: the jar in GitHub Packages, the jar of the
+      # GitHub release, and the jar in the image are the same bytes.
+      - name: Collect release files
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/release"
+          mkdir -p "$out"
+          cp pom.xml "$out/parent-pom.xml"
+          cp openapi-gateway-cli/dependency-reduced-pom.xml "$out/cli-pom.xml"
+          cp openapi-gateway-cli/target/oas-gateway-validate.jar "$out/oas-gateway-validate.jar"
+          docker save -o "$out/image.tar" "$IMAGE:$VERSION"
+
+      - name: Upload release files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-files
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 5
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write   # create the GitHub release
+      packages: write   # GitHub Packages and ghcr.io
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+      FILES: ${{ github.workspace }}/release
+    steps:
+      # No checkout: this job runs no code of the repository.
+      - name: Download release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-files
+          path: ${{ github.workspace }}/release
+
+      # Only for settings.xml: server "github" with GITHUB_ACTOR and GITHUB_TOKEN.
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          server-id: github
+
+      - name: Log in to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      # Only "manifest unknown" (or "name unknown", "not found") means that the tag is new.
+      # Any other error, for example 401, 403, a rate limit, or a network error, stops the release.
+      - name: Check that the image tag is new
+        run: |
+          if out=$(docker manifest inspect "$IMAGE:$VERSION" 2>&1); then
+            echo "::error::$IMAGE:$VERSION exists. A release never moves a version tag."
+            exit 1
+          fi
+          if ! grep -qiE 'manifest unknown|name unknown|not found' <<< "$out"; then
+            echo "::error::Cannot check $IMAGE:$VERSION: $out"
+            exit 1
+          fi
+
+      - name: Load image
+        run: |
+          docker load -i "$FILES/image.tar"
+          docker image inspect "$IMAGE:$VERSION" > /dev/null
+
+      # The runner's Maven deploys the files of the build job. deploy-file reads only the POM
+      # files; it runs no build and no plugin of the project.
+      - name: Deploy jar to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ env.FILES }}
+        run: |
+          set -euo pipefail
+          deploy() {
+            mvn -B org.apache.maven.plugins:maven-deploy-plugin:3.1.4:deploy-file \
+              -DrepositoryId=github \
+              -Durl="https://maven.pkg.github.com/$GITHUB_REPOSITORY" \
+              -Dfile="$1" -DpomFile="$2"
+          }
+          deploy parent-pom.xml parent-pom.xml
+          deploy oas-gateway-validate.jar cli-pom.xml
+
+      - name: Push image
+        run: docker push "$IMAGE:$VERSION"
+
+      - name: Create GitHub release
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release create "$TAG" "$FILES/oas-gateway-validate.jar"
+          --verify-tag --title "oas-gateway-validate $TAG" --generate-notes
+
+      - name: Log out of ghcr.io
+        if: ${{ always() }}
+        run: docker logout ghcr.io

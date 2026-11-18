@@ -1,0 +1,3 @@
+extends: lenient
+rules:
+  security-explicit: warn

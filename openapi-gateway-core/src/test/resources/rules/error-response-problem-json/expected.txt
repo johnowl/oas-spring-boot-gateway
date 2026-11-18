@@ -1,0 +1,5 @@
+/paths/~1orders~1{id}/get/responses/404/content/application~1json
+/paths/~1orders~1{id}/get/responses/409/content/text~1plain
+/paths/~1orders~1{id}/get/responses/4XX/content/application~1xml
+/paths/~1orders~1{id}/get/responses/503/content/application~1json
+/paths/~1orders~1{id}/get/responses/default/content/application~1json

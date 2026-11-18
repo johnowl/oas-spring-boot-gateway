@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: Status
+  version: 1.0.0
+x-gateway:
+  upstream: http://status-service:8080
+  prefix: /status-api
+paths:
+  /status:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK.

@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    post:
+      security: []
+      operationId: createOrder
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+  # The header name comparison is case-insensitive.
+  /payments:
+    post:
+      security: []
+      operationId: createPayment
+      responses:
+        "201":
+          description: Created.
+          headers:
+            location:
+              schema: { type: string, format: uri }
+  # The rule resolves a response $ref.
+  /invoices:
+    post:
+      security: []
+      operationId: createInvoice
+      responses:
+        "201":
+          $ref: "#/components/responses/Created"
+  # A POST without a 201 response passes.
+  /orders/search:
+    post:
+      security: []
+      operationId: searchOrders
+      responses:
+        "200":
+          description: The orders.
+  # A 201 on PUT is not checked.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    put:
+      security: []
+      operationId: putOrder
+      responses:
+        "201":
+          description: Created.
+components:
+  responses:
+    Created:
+      description: Created.
+      headers:
+        Location:
+          schema: { type: string, format: uri }

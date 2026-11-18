@@ -1,0 +1,8 @@
+orders.yaml#/paths/~1orders~1{id}/get
+payments.yaml#/paths/~1orders~1{orderId}/get
+root-a.yaml#/paths/~1b/get
+root-b.yaml#/paths/~1a~1b/get
+overlap-a.yaml#/paths/~1x~1{a}~1c/get
+overlap-a.yaml#/paths/~1users~1{id}/get
+overlap-b.yaml#/paths/~1x~1b~1{y}/get
+overlap-b.yaml#/paths/~1users~1me/get

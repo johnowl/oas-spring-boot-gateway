@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+  prefix: /orders-api
+  audience: 6f1c2e8a-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+paths:
+  /health:
+    get:
+      security: []
+      x-gateway-authorization:
+        all-of: [Ops.Read]
+      responses:
+        "200":
+          description: OK.

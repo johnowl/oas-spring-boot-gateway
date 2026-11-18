@@ -1,0 +1,2 @@
+team-a/orders.yaml#/paths/~1orders~1{id}
+team-b/orders.yaml#/paths/~1orders~1{id}

@@ -1,0 +1,9 @@
+/paths/~1get-orders/get
+/paths/~1orders~1{id}~1delete/post
+/paths/~1createOrder/post
+/paths/~1orders~1{id}~1status-update/get
+/paths/~1orders~1{id}~1status-update/put
+/paths/~1orders_list/get
+/paths/~1orders.fetch/get
+/paths/~1orders~1{id}:delete/post
+/paths/~1orders~1getAll.{format}/get

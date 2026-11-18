@@ -1,0 +1,10 @@
+# Short timeouts keep the tests fast. The test routes are in OpenTestRoutesConfiguration, because the
+# gateway does not start with a route from application.yaml (spec 024, "Only OAS routes").
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 300
+            response-timeout: 1s

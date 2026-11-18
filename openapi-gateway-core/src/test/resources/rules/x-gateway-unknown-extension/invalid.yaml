@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Reports
+  version: 1.0.0
+x-gateway:
+  upstream: http://reports-service:8080
+paths:
+  /reports:
+    get:
+      x-gateway-respone-timeout: 500
+      responses:
+        "200":
+          description: The reports.

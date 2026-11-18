@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "tool": {
+    "name": "oas-gateway-validate",
+    "version": "${version}"
+  },
+  "changes": [],
+  "bindings": [
+    {
+      "kind": "binding-changed",
+      "audience": "1d5a6c2e-0000-0000-0000-000000000000",
+      "baseUpstream": "http://invoices-service:8080",
+      "headUpstream": "http://invoices-service:8080",
+      "basePrefix": "/invoices-api",
+      "headPrefix": null,
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/binding-fields/head/invoices.yaml",
+      "pointer": "/x-gateway"
+    },
+    {
+      "kind": "binding-changed",
+      "audience": "2e6b7d3f-0000-0000-0000-000000000000",
+      "baseUpstream": "http://shipments-service:8080",
+      "headUpstream": "http://shipments-service:8080",
+      "basePrefix": "/shipments-api",
+      "headPrefix": "/shipments-api",
+      "baseUpstreamBasePath": "/v1",
+      "headUpstreamBasePath": "/v2",
+      "file": "src/test/resources/diff/binding-fields/head/shipments.yaml",
+      "pointer": "/x-gateway/upstream-base-path"
+    },
+    {
+      "kind": "binding-changed",
+      "audience": "9c4f5b1d-0000-0000-0000-000000000000",
+      "baseUpstream": "http://reports-service:8080",
+      "headUpstream": "http://reports-v2-service:8080",
+      "basePrefix": null,
+      "headPrefix": null,
+      "baseUpstreamBasePath": null,
+      "headUpstreamBasePath": null,
+      "file": "src/test/resources/diff/binding-fields/head/reports.yaml",
+      "pointer": "/x-gateway/upstream"
+    }
+  ]
+}

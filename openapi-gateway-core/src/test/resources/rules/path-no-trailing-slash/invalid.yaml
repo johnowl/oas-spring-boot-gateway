@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders/:
+    get:
+      security: []
+      operationId: "a"
+      responses:
+        "200":
+          description: OK.
+  /:
+    get:
+      security: []
+      operationId: "b"
+      responses:
+        "200":
+          description: OK.

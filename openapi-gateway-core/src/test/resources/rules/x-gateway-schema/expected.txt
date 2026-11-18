@@ -1,0 +1,3 @@
+/x-gateway/upstream
+/x-gateway/prefix
+/x-gateway

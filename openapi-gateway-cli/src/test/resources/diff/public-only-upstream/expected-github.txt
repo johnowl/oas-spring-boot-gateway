@@ -1,0 +1,2 @@
+::error file=src/test/resources/diff/public-only-upstream/head/docs.yaml,line=6,col=3::Binding without an audience changed: the public operations now go to http://169.254.169.254 for the prefix /docs (base: http://docs-service:8080 for the prefix /docs). Check that this upstream is the right backend.
+0 access loosening changes in 0 operations. 1 new or changed audience binding to review.

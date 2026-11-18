@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orderItems/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: "a"
+      responses:
+        "200":
+          description: OK.
+    delete:
+      security: []
+      operationId: "a2"
+      responses:
+        "204":
+          description: Deleted.
+  /order_items:
+    get:
+      security: []
+      operationId: "b"
+      responses:
+        "200":
+          description: OK.
+  /v1.2/x:
+    get:
+      security: []
+      operationId: "c"
+      responses:
+        "200":
+          description: OK.
+  /.well-known:
+    get:
+      security: []
+      operationId: "d"
+      responses:
+        "200":
+          description: OK.

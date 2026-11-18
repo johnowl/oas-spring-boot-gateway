@@ -1,0 +1,5 @@
+LOOSENING literal-removed-to-template GET /orders-api/orders/{id}
+  src/test/resources/diff/literal-removed/head/orders.yaml#/paths/~1orders~1{id}/get
+  takes the requests of the removed GET /orders-api/orders/export; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Export]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]
+
+1 access loosening change in 1 operation.

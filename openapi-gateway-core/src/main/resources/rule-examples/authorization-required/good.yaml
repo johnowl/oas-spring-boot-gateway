@@ -1,0 +1,7 @@
+paths:
+  /orders:
+    get:
+      security:
+        - entra: []
+      x-gateway-authorization:
+        any-of: [Orders.Read]

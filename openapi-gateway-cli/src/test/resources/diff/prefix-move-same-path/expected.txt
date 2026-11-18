@@ -1,0 +1,8 @@
+LOOSENING permission-removed-from-all-of DELETE /orders-api/orders/{id}
+  src/test/resources/diff/prefix-move-same-path/head/orders.yaml#/paths/~1{id}/delete
+  Orders.Delete removed from all-of
+BINDING binding-changed audience=6f1c2e8a-0000-0000-0000-000000000000
+  src/test/resources/diff/prefix-move-same-path/head/orders.yaml#/x-gateway/prefix
+  base: upstream=http://orders-service:8080, prefix=/orders-api; head: upstream=http://orders-service:8080, prefix=/orders-api/orders
+
+1 access loosening change in 1 operation. 1 new or changed audience binding to review.

@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+  prefix: /orders-api
+tags:
+  - name: orders
+paths:
+  /orders:
+    get:
+      operationId: list_orders
+      summary: List orders
+      tags: [orders]
+      security: []
+      x-deviation:
+        - rule: operation-id-camel-case
+          reason: The generated client keeps the old name.
+      responses:
+        "200":
+          description: The orders.

@@ -1,0 +1,128 @@
+# Validates the OAS files with the in-house CLI on each pull request.
+# See specs/011-pr-validation-pipeline.md.
+name: OpenAPI validation
+
+on:
+  pull_request:
+    branches: [main]
+    # edited: a change of the base branch runs the validation again.
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openapi-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  OPENAPI_DIR: gateway/src/main/resources/openapi
+
+jobs:
+  # No paths filter on the trigger: a required check that a paths filter skips stays "Pending".
+  # A job that an if condition skips reports "Success".
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      relevant: ${{ steps.diff.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Fail closed: if git diff fails, the job fails, and validate does not report a skipped Success.
+          set -euo pipefail
+          git diff --name-only "origin/${BASE_REF}...HEAD" > "$RUNNER_TEMP/changed-files.txt"
+          if grep -E '^(gateway/src/main/resources/|openapi-gateway-core/|openapi-gateway-cli/|\.mvn/|mvnw$|pom\.xml$|\.oas-gateway\.yaml$|\.oas-baseline\.json$|\.github/workflows/openapi\.yml$)' \
+            "$RUNNER_TEMP/changed-files.txt"; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Runs code from the pull request (the build and the CLI), so it has only contents: read.
+  validate:
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      sarif: ${{ steps.sarif.outputs.sarif }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Build CLI
+        id: build
+        # build.yml runs all tests on every pull request.
+        run: ./mvnw -B -pl openapi-gateway-cli -am package -DskipTests
+      - name: Validate OAS files
+        run: |
+          # Temporary until the first real OAS file exists. The PR that adds it removes this check.
+          if [ ! -d "$OPENAPI_DIR" ]; then
+            echo "::notice::$OPENAPI_DIR does not exist yet. Nothing to validate."
+            exit 0
+          fi
+          java -jar openapi-gateway-cli/target/oas-gateway-validate.jar \
+            --format github --fail-on error "$OPENAPI_DIR"
+      # The SARIF steps only report. The step above decides the check result.
+      # They run after a failed validation, but not after a cancel or a failed build.
+      - name: Validate OAS files (SARIF)
+        id: sarif
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          if [ -d "$OPENAPI_DIR" ]; then
+            status=0
+            java -jar openapi-gateway-cli/target/oas-gateway-validate.jar \
+              --format sarif --fail-on info "$OPENAPI_DIR" > "$RUNNER_TEMP/oas-gateway.sarif" || status=$?
+            # Exit code 1 means "violations found": the report is complete. Exit code 2 gives no report.
+            if [ "$status" -le 1 ] && [ -s "$RUNNER_TEMP/oas-gateway.sarif" ]; then
+              mv "$RUNNER_TEMP/oas-gateway.sarif" oas-gateway.sarif
+              echo "sarif=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Keep SARIF report
+        if: ${{ !cancelled() && steps.sarif.outputs.sarif == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: oas-gateway-sarif
+          path: oas-gateway.sarif
+          retention-days: 14
+
+  # Set the repository variable CODE_SCANNING_ENABLED to 'true' when code scanning is enabled.
+  # This job has security-events: write and runs no code from the pull request.
+  # The token of a fork pull request cannot write security events, so the job skips forks.
+  upload-sarif:
+    needs: validate
+    if: ${{ !cancelled() && vars.CODE_SCANNING_ENABLED == 'true' && needs.validate.outputs.sarif == 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      # The files only give code scanning the source lines. Nothing from the checkout runs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: oas-gateway-sarif
+      - name: Upload SARIF to code scanning
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: oas-gateway.sarif
+          category: oas-gateway-validate

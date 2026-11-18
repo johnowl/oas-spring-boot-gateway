@@ -1,0 +1,19 @@
+openapi: 3.0.3
+info:
+  title: Reports
+  version: 1.0.0
+x-gateway:
+  upstream: http://reports-service:8080
+paths:
+  /reports:
+    get:
+      x-gateway-response-timeout: 30000
+      x-gateway-authorization:
+        any-of: [Reports.Read]
+      x-deviation:
+        - rule: operation-summary-required
+          reason: Internal endpoint.
+      x-other-team-extension: true
+      responses:
+        "200":
+          description: The reports.

@@ -1,0 +1,6 @@
+paths:
+  /orders:
+    get:
+      x-gateway-authorization:
+        all-of: []
+        authenticated-only: true

@@ -1,0 +1,24 @@
+# Settings for every Spring Boot test. Spring Boot reads this file after the main
+# application.yaml (classpath:/config/ has a higher priority), so the main file stays in use.
+gateway:
+  public-base-url: https://gateway.example.com
+spring:
+  security:
+    oauth2:
+      client:
+        # Dummy values. MockIdentityProviderSession starts the mock identity provider on localhost.
+        registration:
+          entra:
+            client-id: test-gateway-bff
+            client-secret: test-only-dummy-secret
+        provider:
+          entra:
+            issuer-uri: ${mock-idp.issuer-uri}
+  # RedisTestContainerContextCustomizerFactory adds the host and the port of the Redis container.
+  # The user is the ACL user of spec 022 that RedisTestContainer creates.
+  data:
+    redis:
+      username: gateway
+      password: test-only-redis-password
+      ssl:
+        enabled: false

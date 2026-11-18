@@ -1,0 +1,4 @@
+::error file=src/test/resources/diff/head-operation/head/orders.yaml,line=30,col=5::Access loosening (head-weaker-than-get) of HEAD /orders-api/orders/{id}: weaker than GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: audience=6f1c2e8a-0000-0000-0000-000000000000, authenticated-only.
+::error file=src/test/resources/diff/head-operation/head/orders.yaml,line=36,col=5::Access loosening (head-weaker-than-get) of OPTIONS /orders-api/orders/{id}: weaker than GET /orders-api/orders/{id} in the base; base: audience=6f1c2e8a-0000-0000-0000-000000000000, all-of=[Orders.Read]; head: public.
+::error file=src/test/resources/diff/head-operation/head/orders.yaml,line=36,col=5::Access loosening (new-public-operation) of OPTIONS /orders-api/orders/{id}: base: none; head: public.
+3 access loosening changes in 2 operations.

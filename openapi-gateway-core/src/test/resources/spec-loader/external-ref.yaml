@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      responses:
+        "500":
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/Error"

@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        "200":
+          description: The orders.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Used" }
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer }
+  responses:
+    Problem:
+      description: A problem.
+  schemas:
+    Used:
+      type: object
+    # Order is used only by OrderList, and OrderList is not used: both are unused.
+    OrderList:
+      type: array
+      items: { $ref: "#/components/schemas/Order" }
+    Order:
+      type: object
+    # A schema that references only itself is unused.
+    Node:
+      type: object
+      properties:
+        next: { $ref: "#/components/schemas/Node" }
+    # A cycle that nothing outside components reaches is unused.
+    A:
+      type: object
+      properties:
+        b: { $ref: "#/components/schemas/B" }
+    B:
+      type: object
+      properties:
+        a: { $ref: "#/components/schemas/A" }

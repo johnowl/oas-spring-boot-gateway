@@ -1,0 +1,5 @@
+paths:
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders

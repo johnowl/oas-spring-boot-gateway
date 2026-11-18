@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Payments
+  version: 1.0.0
+x-gateway:
+  upstream: http://payments-service:8080
+  prefix: /payments-api
+  audience: 7a2d3f9b-0000-0000-0000-000000000000
+components:
+  securitySchemes:
+    entra:
+      type: openIdConnect
+      openIdConnectUrl: https://login.microsoftonline.com/tenant/v2.0/.well-known/openid-configuration
+security:
+  - entra: []
+paths:
+  /payments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-gateway-authorization:
+        all-of: [Payments.Read, Payments.Write]
+      responses:
+        "200":
+          description: OK

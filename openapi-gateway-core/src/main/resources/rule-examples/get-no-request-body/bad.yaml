@@ -1,0 +1,7 @@
+paths:
+  /orders:
+    get:
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }

@@ -1,0 +1,2 @@
+/security/0
+/paths/~1items/get/security/0

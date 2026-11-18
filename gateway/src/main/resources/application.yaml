@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: gateway
+  security:
+    oauth2:
+      client:
+        # Session login with Microsoft Entra ID (app gateway-bff). See specs/022-session-login.md.
+        registration:
+          entra:
+            provider: entra
+            client-id: ${GATEWAY_BFF_CLIENT_ID:}
+            # From the environment or a secret store, never from a file in the repository.
+            client-secret: ${GATEWAY_BFF_CLIENT_SECRET:}
+            authorization-grant-type: authorization_code
+            redirect-uri: "${gateway.public-base-url}/login/oauth2/code/{registrationId}"
+            scope: [openid, profile, offline_access]
+        provider:
+          entra:
+            issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/v2.0
+            user-name-attribute: oid
+  # Only for gateway.session.store=redis (spec 022, "Redis protection"): TLS, and a Redis ACL user
+  # that may use only the keys spring:session:* and the commands that the gateway needs.
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # Client that calls the backends. See specs/003-upstream-http-client.md.
+          httpclient:
+            connect-timeout: 2000      # milliseconds
+            response-timeout: 10s
+            pool:
+              type: FIXED
+              max-connections: 500     # for each backend address
+              acquire-timeout: 5000    # milliseconds
+              max-idle-time: 30s       # must be lower than the keep-alive timeout of every backend
+              max-life-time: 5m
+
+server:
+  # The gateway does not trust Forwarded and X-Forwarded-* headers (spec 022, "Public base URL", and
+  # spec 025, "Forwarding headers"). It MUST be none. An explicit value: without it, Spring Boot trusts
+  # them on some cloud platforms, for example Kubernetes.
+  forward-headers-strategy: none
+
+# The actuator runs on its own port. Network policy restricts access to it.
+management:
+  server:
+    port: 8081
+  health:
+    # The Redis health check sends INFO, which the Redis ACL user of the gateway cannot run
+    # (spec 022, "Redis ACL"). The gateway connects to Redis at startup instead.
+    redis:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+gateway:
+  # The session store (spec 022, "Session store"). memory: the sessions of each instance stay in its
+  # memory; several instances need sticky sessions at the load balancer. redis: shared sessions.
+  session:
+    store: memory
+    memory:
+      max-sessions: 100000
+  # Public URL of the gateway, for example https://gateway.example.com. Required.
+  # The gateway builds its redirect URIs from it. See specs/022-session-login.md.
+  public-base-url: ${GATEWAY_PUBLIC_BASE_URL:}
+  security:
+    session:
+      pre-login-timeout: 5m
+      idle-timeout: 30m
+      max-lifetime: 8h
+    login:
+      failure-path: "/?login=failed"
+    logout:
+      post-logout-redirect-path: "/"
+    # Per-audience tokens (spec 023): renew a token this time before its exp, and the maximum time
+    # of one call to the token endpoint of Entra ID.
+    token-clock-skew: 60s
+    token-endpoint:
+      timeout: 5s
+      # Grants of this instance in one second, for all sessions. A grant over the limit gets 503.
+      grants-per-second: 50
+    # Decoded permissions of the audience tokens. An entry lives until the token exp, at most 1 hour.
+    # From 1 to 1000000. The same size limits the memory of invalid tokens (30 seconds).
+    permission-cache:
+      maximum-size: 10000
+    # Request headers that the gateway removes in addition to its built-in list (spec 025). The values
+    # add to the list; they cannot remove a built-in entry. Example: names: [X-Tenant-Id], prefixes: [X-Internal-]
+    remove-request-headers:
+      names: []
+      prefixes: []

@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Orders
+  version: 1.0.0
+x-gateway:
+  upstream: http://orders-service:8080
+paths:
+  /orders:
+    # No summary.
+    get:
+      security: []
+      operationId: listOrders
+      responses:
+        "200":
+          description: OK.
+    # A description does not replace the summary.
+    post:
+      security: []
+      operationId: createOrder
+      description: Creates an order.
+      responses:
+        "201":
+          description: Created.
+  /orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      security: []
+      operationId: getOrder
+      summary: ""
+      responses:
+        "200":
+          description: OK.
+    delete:
+      security: []
+      operationId: deleteOrder
+      summary: "  "
+      responses:
+        "204":
+          description: Deleted.
